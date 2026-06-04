@@ -1,0 +1,1430 @@
+{
+  "cards": [
+	{
+	  "id": "precise_strike",
+	  "name": "精准打击",
+	  "rarity": "green",
+	  "target_type": "敌方单体",
+	  "target_summary": "对敌方单体发动一次高爆发打击。",
+	  "energy_curve": "single",
+	  "allowed_professions": [
+        "ranger"
+	  ],
+	  "width": 3,
+	  "height": 4,
+	  "active_cells": [
+		[
+		  0,
+		  0
+		],
+		[
+		  1,
+		  0
+		],
+		[
+		  2,
+		  0
+		],
+		[
+		  0,
+		  1
+		],
+		[
+		  2,
+		  1
+		],
+		[
+		  0,
+		  2
+		],
+		[
+		  0,
+		  3
+		]
+	  ],
+	  "special_slots": [
+		{
+		  "pos": [
+			2,
+			1
+		  ],
+		  "type": "damage_boost",
+		  "label": "伤害模组效果 +30%"
+		}
+	  ]
+	},
+	{
+	  "id": "guardian_prayer",
+	  "name": "守护祷言",
+	  "rarity": "green",
+	  "target_type": "我方单体 / 相邻单位",
+	  "target_summary": "治疗目标，并照顾一名相邻队友。",
+	  "energy_curve": "range",
+	  "allowed_professions": [
+        "priest"
+	  ],
+	  "width": 4,
+	  "height": 4,
+	  "active_cells": [
+		[
+		  0,
+		  0
+		],
+		[
+		  1,
+		  0
+		],
+		[
+		  2,
+		  0
+		],
+		[
+		  0,
+		  1
+		],
+		[
+		  1,
+		  1
+		],
+		[
+		  0,
+		  2
+		]
+	  ],
+	  "special_slots": [
+		{
+		  "pos": [
+			1,
+			0
+		  ],
+		  "type": "heal_boost",
+		  "label": "治疗效果 +25%"
+		},
+		{
+		  "pos": [
+			0,
+			1
+		  ],
+		  "type": "shield_boost",
+		  "label": "护盾效果 +20%"
+		}
+	  ]
+	},
+	{
+	  "id": "sweep",
+	  "name": "横扫",
+	  "rarity": "white",
+	  "target_type": "敌方第一列全体单位",
+	  "target_summary": "压制敌方第一列的全部前排单位。",
+	  "energy_curve": "range",
+	  "allowed_professions": [
+        "warrior"
+	  ],
+	  "width": 3,
+	  "height": 3,
+	  "active_cells": [
+		[
+		  0,
+		  0
+		],
+		[
+		  1,
+		  0
+		],
+		[
+		  0,
+		  1
+		],
+		[
+		  0,
+		  2
+		]
+	  ],
+	  "special_slots": [
+		{
+		  "pos": [
+			0,
+			2
+		  ],
+		  "type": "anti_shield",
+		  "label": "对护盾目标伤害 +20%"
+		}
+	  ]
+	},
+	{
+	  "id": "tactical_support",
+	  "name": "战术支援",
+	  "rarity": "white",
+	  "target_type": "自身 / 相邻我方单位",
+	  "target_summary": "为相邻友军提供护盾、减伤和加速。",
+	  "energy_curve": "single",
+	  "allowed_professions": [
+		"guardian",
+        "warrior"
+	  ],
+	  "width": 4,
+	  "height": 3,
+	  "active_cells": [
+		[
+		  0,
+		  0
+		],
+		[
+		  1,
+		  0
+		],
+		[
+		  2,
+		  0
+		],
+		[
+		  1,
+		  1
+		],
+		[
+		  1,
+		  2
+		]
+	  ],
+	  "special_slots": [
+		{
+		  "pos": [
+			1,
+			1
+		  ],
+		  "type": "support_duration",
+		  "label": "辅助效果持续时间 +1 回合"
+		}
+	  ]
+	}
+  ],
+  "modules": [
+	{
+	  "id": "small_damage_white",
+	  "name": "小型伤害",
+	  "shape": [
+		[
+		  0,
+		  0
+		],
+		[
+		  1,
+		  0
+		]
+	  ],
+	  "size": [
+		2,
+		1
+	  ],
+	  "category": "damage",
+	  "count": 0,
+	  "short": "伤",
+	  "description": "造成 40% 力量伤害",
+	  "effects": {
+		"damage_pct": 40.0
+	  },
+	  "quality": "white",
+	  "tags": [
+        "伤害"
+	  ]
+	},
+	{
+	  "id": "heavy_strike_white",
+	  "name": "强击模块",
+	  "shape": [
+		[
+		  0,
+		  0
+		],
+		[
+		  1,
+		  0
+		]
+	  ],
+	  "size": [
+		2,
+		1
+	  ],
+	  "category": "damage",
+	  "count": 0,
+	  "short": "强",
+	  "description": "+70% 力量伤害",
+	  "effects": {
+		"damage_pct": 70.0
+	  },
+	  "quality": "white",
+	  "tags": [
+        "伤害"
+	  ]
+	},
+	{
+	  "id": "pierce_white",
+	  "name": "穿刺模块",
+	  "shape": [
+		[
+		  0,
+		  0
+		],
+		[
+		  1,
+		  0
+		]
+	  ],
+	  "size": [
+		2,
+		1
+	  ],
+	  "category": "damage",
+	  "count": 1,
+	  "short": "穿",
+	  "description": "+60% 力量伤害，20% 穿透",
+	  "effects": {
+		"damage_pct": 60.0,
+		"pierce_pct": 20.0
+	  },
+	  "quality": "white",
+	  "tags": [
+		"伤害",
+        "穿透"
+	  ]
+	},
+	{
+	  "id": "lone_blow_white",
+	  "name": "独行·重击",
+	  "shape": [
+		[
+		  0,
+		  0
+		],
+		[
+		  1,
+		  0
+		]
+	  ],
+	  "size": [
+		2,
+		1
+	  ],
+	  "category": "damage",
+	  "count": 1,
+	  "short": "独",
+	  "description": "+120% 力量伤害，每张技能卡仅限 1 个",
+	  "is_unique": true,
+	  "effects": {
+		"damage_pct": 120.0
+	  },
+	  "quality": "white",
+	  "tags": [
+		"伤害",
+        "独行"
+	  ]
+	},
+	{
+	  "id": "small_heal_white",
+	  "name": "小型治疗",
+	  "shape": [
+		[
+		  0,
+		  0
+		],
+		[
+		  1,
+		  0
+		]
+	  ],
+	  "size": [
+		2,
+		1
+	  ],
+	  "category": "heal",
+	  "count": 0,
+	  "short": "疗",
+	  "description": "恢复 40% 意志生命",
+	  "effects": {
+		"heal_pct": 40.0
+	  },
+	  "quality": "white",
+	  "tags": [
+        "治疗"
+	  ]
+	},
+	{
+	  "id": "blessing_white",
+	  "name": "祝福模块",
+	  "shape": [
+		[
+		  0,
+		  0
+		],
+		[
+		  1,
+		  0
+		]
+	  ],
+	  "size": [
+		2,
+		1
+	  ],
+	  "category": "support",
+	  "count": 1,
+	  "short": "福",
+	  "description": "恢复 50% 意志生命，并获得 50% 意志护盾",
+	  "effects": {
+		"heal_pct": 50.0,
+		"shield_pct": 50.0
+	  },
+	  "quality": "white",
+	  "tags": [
+        "辅助"
+	  ]
+	},
+	{
+	  "id": "haste_white",
+	  "name": "加速模块",
+	  "shape": [
+		[
+		  0,
+		  0
+		],
+		[
+		  1,
+		  0
+		]
+	  ],
+	  "size": [
+		2,
+		1
+	  ],
+	  "category": "support",
+	  "count": 1,
+	  "short": "速",
+	  "description": "速度 +3，持续 1 回合",
+	  "effects": {
+		"speed_buff": 3,
+		"duration": 1
+	  },
+	  "quality": "white",
+	  "tags": [
+		"辅助",
+        "加速"
+	  ]
+	},
+	{
+	  "id": "guard_white",
+	  "name": "稳固模块",
+	  "shape": [
+		[
+		  0,
+		  0
+		]
+	  ],
+	  "size": [
+		1,
+		1
+	  ],
+	  "category": "support",
+	  "count": 1,
+	  "short": "稳",
+	  "description": "受到伤害 -20%，持续 1 回合",
+	  "effects": {
+		"damage_reduction_pct": 20,
+		"duration": 1
+	  },
+	  "quality": "white",
+	  "tags": [
+		"辅助",
+        "减伤"
+	  ]
+	},
+	{
+	  "id": "basic_damage_white",
+	  "name": "基础打击",
+	  "quality": "white",
+	  "shape": [
+		[
+		  0,
+		  0
+		]
+	  ],
+	  "size": [
+		1,
+		1
+	  ],
+	  "category": "damage",
+	  "count": 3,
+	  "short": "打",
+	  "description": "造成 30% 力量伤害",
+	  "effects": {
+		"damage_pct": 30.0
+	  },
+	  "reward_excluded": true,
+	  "tags": [
+        "伤害"
+	  ]
+	},
+	{
+	  "id": "small_damage_green",
+	  "name": "小型伤害+",
+	  "quality": "green",
+	  "shape": [
+		[
+		  0,
+		  0
+		]
+	  ],
+	  "size": [
+		1,
+		1
+	  ],
+	  "category": "damage",
+	  "count": 0,
+	  "short": "打+",
+	  "description": "造成 52% 力量伤害",
+	  "effects": {
+		"damage_pct": 52.0
+	  },
+	  "tags": [
+        "伤害"
+	  ]
+	},
+	{
+	  "id": "heavy_damage_white",
+	  "name": "强力打击",
+	  "quality": "white",
+	  "shape": [
+		[
+		  0,
+		  0
+		],
+		[
+		  1,
+		  0
+		]
+	  ],
+	  "size": [
+		2,
+		1
+	  ],
+	  "category": "damage",
+	  "count": 0,
+	  "short": "强",
+	  "description": "造成 70% 力量伤害",
+	  "effects": {
+		"damage_pct": 70.0
+	  },
+	  "tags": [
+        "伤害"
+	  ]
+	},
+	{
+	  "id": "heavy_damage_green",
+	  "name": "强力打击+",
+	  "quality": "green",
+	  "shape": [
+		[
+		  0,
+		  0
+		],
+		[
+		  1,
+		  0
+		]
+	  ],
+	  "size": [
+		2,
+		1
+	  ],
+	  "category": "damage",
+	  "count": 0,
+	  "short": "强+",
+	  "description": "造成 91% 力量伤害",
+	  "effects": {
+		"damage_pct": 91.0
+	  },
+	  "tags": [
+        "伤害"
+	  ]
+	},
+	{
+	  "id": "basic_shield_white",
+	  "name": "基础护盾",
+	  "quality": "white",
+	  "shape": [
+		[
+		  0,
+		  0
+		]
+	  ],
+	  "size": [
+		1,
+		1
+	  ],
+	  "category": "shield",
+	  "count": 1,
+	  "short": "盾",
+	  "description": "获得 35% 意志护盾",
+	  "effects": {
+		"shield_pct": 35.0
+	  },
+	  "reward_excluded": true,
+	  "tags": [
+        "护盾"
+	  ]
+	},
+	{
+	  "id": "small_shield_green",
+	  "name": "小型护盾+",
+	  "quality": "green",
+	  "shape": [
+		[
+		  0,
+		  0
+		]
+	  ],
+	  "size": [
+		1,
+		1
+	  ],
+	  "category": "shield",
+	  "count": 0,
+	  "short": "盾+",
+	  "description": "获得 55% 意志护盾",
+	  "effects": {
+		"shield_pct": 55.0
+	  },
+	  "tags": [
+        "护盾"
+	  ]
+	},
+	{
+	  "id": "strong_shield_white",
+	  "name": "坚固护盾",
+	  "quality": "white",
+	  "shape": [
+		[
+		  0,
+		  0
+		],
+		[
+		  1,
+		  0
+		]
+	  ],
+	  "size": [
+		2,
+		1
+	  ],
+	  "category": "shield",
+	  "count": 2,
+	  "short": "坚",
+	  "description": "获得 80% 意志护盾",
+	  "effects": {
+		"shield_pct": 80.0
+	  },
+	  "tags": [
+        "护盾"
+	  ]
+	},
+	{
+	  "id": "strong_shield_green",
+	  "name": "坚固护盾+",
+	  "quality": "green",
+	  "shape": [
+		[
+		  0,
+		  0
+		],
+		[
+		  1,
+		  0
+		]
+	  ],
+	  "size": [
+		2,
+		1
+	  ],
+	  "category": "shield",
+	  "count": 0,
+	  "short": "坚+",
+	  "description": "获得 104% 意志护盾",
+	  "effects": {
+		"shield_pct": 104.0
+	  },
+	  "tags": [
+        "护盾"
+	  ]
+	},
+	{
+	  "id": "basic_heal_white",
+	  "name": "基础治疗",
+	  "quality": "white",
+	  "shape": [
+		[
+		  0,
+		  0
+		]
+	  ],
+	  "size": [
+		1,
+		1
+	  ],
+	  "category": "heal",
+	  "count": 1,
+	  "short": "疗",
+	  "description": "恢复 30% 意志生命",
+	  "effects": {
+		"heal_pct": 30.0
+	  },
+	  "reward_excluded": true,
+	  "tags": [
+        "治疗"
+	  ]
+	},
+	{
+	  "id": "small_heal_green",
+	  "name": "小型治疗+",
+	  "quality": "green",
+	  "shape": [
+		[
+		  0,
+		  0
+		]
+	  ],
+	  "size": [
+		1,
+		1
+	  ],
+	  "category": "heal",
+	  "count": 0,
+	  "short": "疗+",
+	  "description": "恢复 52% 意志生命",
+	  "effects": {
+		"heal_pct": 52.0
+	  },
+	  "tags": [
+        "治疗"
+	  ]
+	},
+	{
+	  "id": "strong_heal_white",
+	  "name": "强效治疗",
+	  "quality": "white",
+	  "shape": [
+		[
+		  0,
+		  0
+		],
+		[
+		  1,
+		  0
+		]
+	  ],
+	  "size": [
+		2,
+		1
+	  ],
+	  "category": "heal",
+	  "count": 1,
+	  "short": "愈",
+	  "description": "恢复 70% 意志生命",
+	  "effects": {
+		"heal_pct": 70.0
+	  },
+	  "tags": [
+        "治疗"
+	  ]
+	},
+	{
+	  "id": "strong_heal_green",
+	  "name": "强效治疗+",
+	  "quality": "green",
+	  "shape": [
+		[
+		  0,
+		  0
+		],
+		[
+		  1,
+		  0
+		]
+	  ],
+	  "size": [
+		2,
+		1
+	  ],
+	  "category": "heal",
+	  "count": 0,
+	  "short": "愈+",
+	  "description": "恢复 91% 意志生命",
+	  "effects": {
+		"heal_pct": 91.0
+	  },
+	  "tags": [
+        "治疗"
+	  ]
+	},
+	{
+	  "id": "vulnerable_white",
+	  "name": "破绽",
+	  "quality": "white",
+	  "shape": [
+		[
+		  0,
+		  0
+		]
+	  ],
+	  "size": [
+		1,
+		1
+	  ],
+	  "category": "status",
+	  "count": 0,
+	  "short": "易",
+	  "description": "施加 1 层易伤",
+	  "effects": {
+		"status": {
+		  "id": "vulnerable",
+		  "layers": 1
+		}
+	  },
+	  "tags": [
+		"状态",
+        "易伤"
+	  ]
+	},
+	{
+	  "id": "vulnerable_green",
+	  "name": "破绽+",
+	  "quality": "green",
+	  "shape": [
+		[
+		  0,
+		  0
+		]
+	  ],
+	  "size": [
+		1,
+		1
+	  ],
+	  "category": "status",
+	  "count": 1,
+	  "short": "易+",
+	  "description": "施加 2 层易伤",
+	  "effects": {
+		"status": {
+		  "id": "vulnerable",
+		  "layers": 2
+		}
+	  },
+	  "tags": [
+		"状态",
+        "易伤"
+	  ]
+	},
+	{
+	  "id": "weak_white",
+	  "name": "虚弱",
+	  "quality": "white",
+	  "shape": [
+		[
+		  0,
+		  0
+		]
+	  ],
+	  "size": [
+		1,
+		1
+	  ],
+	  "category": "status",
+	  "count": 0,
+	  "short": "虚",
+	  "description": "施加 1 层虚弱",
+	  "effects": {
+		"status": {
+		  "id": "weak",
+		  "layers": 1
+		}
+	  },
+	  "tags": [
+		"状态",
+        "虚弱"
+	  ]
+	},
+	{
+	  "id": "weak_green",
+	  "name": "虚弱+",
+	  "quality": "green",
+	  "shape": [
+		[
+		  0,
+		  0
+		]
+	  ],
+	  "size": [
+		1,
+		1
+	  ],
+	  "category": "status",
+	  "count": 1,
+	  "short": "虚+",
+	  "description": "施加 2 层虚弱",
+	  "effects": {
+		"status": {
+		  "id": "weak",
+		  "layers": 2
+		}
+	  },
+	  "tags": [
+		"状态",
+        "虚弱"
+	  ]
+	},
+	{
+	  "id": "burn_white",
+	  "name": "灼烧",
+	  "quality": "white",
+	  "shape": [
+		[
+		  0,
+		  0
+		],
+		[
+		  1,
+		  0
+		]
+	  ],
+	  "size": [
+		2,
+		1
+	  ],
+	  "category": "status",
+	  "count": 0,
+	  "short": "灼",
+	  "description": "施加 60% 力量层灼烧",
+	  "effects": {
+		"status": {
+		  "id": "burn",
+		  "scale_stat": "strength",
+		  "scale_pct": 60.0
+		}
+	  },
+	  "tags": [
+		"状态",
+        "灼烧"
+	  ]
+	},
+	{
+	  "id": "burn_green",
+	  "name": "灼烧+",
+	  "quality": "green",
+	  "shape": [
+		[
+		  0,
+		  0
+		],
+		[
+		  1,
+		  0
+		]
+	  ],
+	  "size": [
+		2,
+		1
+	  ],
+	  "category": "status",
+	  "count": 0,
+	  "short": "灼+",
+	  "description": "施加 78% 力量灼烧",
+	  "effects": {
+		"status": {
+		  "id": "burn",
+		  "scale_stat": "strength",
+		  "scale_pct": 78.0,
+		  "flat": 0
+		}
+	  },
+	  "tags": [
+		"状态",
+        "灼烧"
+	  ]
+	},
+	{
+	  "id": "cold_white",
+	  "name": "寒冷",
+	  "quality": "white",
+	  "shape": [
+		[
+		  0,
+		  0
+		]
+	  ],
+	  "size": [
+		1,
+		1
+	  ],
+	  "category": "status",
+	  "count": 0,
+	  "short": "寒",
+	  "description": "施加 2 层寒冷",
+	  "effects": {
+		"status": {
+		  "id": "cold",
+		  "layers": 2
+		}
+	  },
+	  "tags": [
+		"状态",
+        "寒冷"
+	  ]
+	},
+	{
+	  "id": "cold_green",
+	  "name": "寒冷+",
+	  "quality": "green",
+	  "shape": [
+		[
+		  0,
+		  0
+		]
+	  ],
+	  "size": [
+		1,
+		1
+	  ],
+	  "category": "status",
+	  "count": 1,
+	  "short": "寒+",
+	  "description": "施加 3 层寒冷",
+	  "effects": {
+		"status": {
+		  "id": "cold",
+		  "layers": 3
+		}
+	  },
+	  "tags": [
+		"状态",
+        "寒冷"
+	  ]
+	},
+	{
+	  "id": "inspire_white",
+	  "name": "鼓舞",
+	  "quality": "white",
+	  "shape": [
+		[
+		  0,
+		  0
+		]
+	  ],
+	  "size": [
+		1,
+		1
+	  ],
+	  "category": "support",
+	  "count": 1,
+	  "short": "鼓",
+	  "description": "恢复 3 士气",
+	  "effects": {
+		"morale_gain": 3
+	  },
+	  "tags": [
+		"辅助",
+        "士气"
+	  ]
+	},
+	{
+	  "id": "inspire_green",
+	  "name": "鼓舞+",
+	  "quality": "green",
+	  "shape": [
+		[
+		  0,
+		  0
+		]
+	  ],
+	  "size": [
+		1,
+		1
+	  ],
+	  "category": "support",
+	  "count": 0,
+	  "short": "鼓+",
+	  "description": "恢复 5 士气",
+	  "effects": {
+		"morale_gain": 5
+	  },
+	  "tags": [
+		"辅助",
+        "士气"
+	  ]
+	},
+	{
+	  "id": "morale_shield_white",
+	  "name": "士气护盾",
+	  "quality": "white",
+	  "shape": [
+		[
+		  0,
+		  0
+		]
+	  ],
+	  "size": [
+		1,
+		1
+	  ],
+	  "category": "shield",
+	  "count": 0,
+	  "short": "气盾",
+	  "description": "消耗 3 士气，并入本技能护盾：+75% 意志护盾",
+	  "effects": {
+		"morale_shield": {
+		  "cost": 3,
+		  "shield_pct": 75.0
+		}
+	  },
+	  "tags": [
+		"护盾",
+        "士气"
+	  ]
+	},
+	{
+	  "id": "morale_shield_green",
+	  "name": "士气护盾+",
+	  "quality": "green",
+	  "shape": [
+		[
+		  0,
+		  0
+		]
+	  ],
+	  "size": [
+		1,
+		1
+	  ],
+	  "category": "shield",
+	  "count": 0,
+	  "short": "气盾+",
+	  "description": "消耗 5 士气，并入本技能护盾：+98% 意志护盾",
+	  "effects": {
+		"morale_shield": {
+		  "cost": 5,
+		  "shield_pct": 98.0
+		}
+	  },
+	  "tags": [
+		"护盾",
+        "士气"
+	  ]
+	},
+	{
+	  "id": "morale_damage_white",
+	  "name": "士气打击",
+	  "quality": "white",
+	  "shape": [
+		[
+		  0,
+		  0
+		]
+	  ],
+	  "size": [
+		1,
+		1
+	  ],
+	  "category": "damage",
+	  "count": 0,
+	  "short": "气打",
+	  "description": "消耗 5 士气，并入本技能伤害：+60% 力量伤害",
+	  "effects": {
+		"morale_damage": {
+		  "cost": 5,
+		  "damage_pct": 60.0
+		}
+	  },
+	  "tags": [
+		"伤害",
+        "士气"
+	  ]
+	},
+	{
+	  "id": "morale_damage_green",
+	  "name": "士气打击+",
+	  "quality": "green",
+	  "shape": [
+		[
+		  0,
+		  0
+		]
+	  ],
+	  "size": [
+		1,
+		1
+	  ],
+	  "category": "damage",
+	  "count": 0,
+	  "short": "气打+",
+	  "description": "消耗 7 士气，并入本技能伤害：+78% 力量伤害",
+	  "effects": {
+		"morale_damage": {
+		  "cost": 7,
+		  "damage_pct": 78.0
+		}
+	  },
+	  "tags": [
+		"伤害",
+        "士气"
+	  ]
+	},
+	{
+	  "id": "burning_strike_white",
+	  "name": "灼烧打击",
+	  "quality": "white",
+	  "shape": [
+		[
+		  0,
+		  0
+		]
+	  ],
+	  "size": [
+		1,
+		1
+	  ],
+	  "category": "status",
+	  "count": 1,
+	  "short": "灼核",
+	  "description": "根据相邻伤害模组施加灼烧",
+	  "effects": {
+		"burning_strike_factor": 0.5
+	  },
+	  "is_unique": true,
+	  "tags": [
+		"状态",
+		"灼烧",
+        "独行"
+	  ]
+	},
+	{
+	  "id": "burning_strike_green",
+	  "name": "灼烧打击+",
+	  "quality": "green",
+	  "shape": [
+		[
+		  0,
+		  0
+		]
+	  ],
+	  "size": [
+		1,
+		1
+	  ],
+	  "category": "status",
+	  "count": 0,
+	  "short": "灼核+",
+	  "description": "根据相邻伤害模组施加灼烧",
+	  "effects": {
+		"burning_strike_factor": 0.65
+	  },
+	  "is_unique": true,
+	  "tags": [
+		"状态",
+		"灼烧",
+        "独行"
+	  ]
+	},
+	{
+	  "id": "inspire_core_white",
+	  "name": "鼓舞核心",
+	  "quality": "white",
+	  "shape": [
+		[
+		  0,
+		  0
+		]
+	  ],
+	  "size": [
+		1,
+		1
+	  ],
+	  "category": "support",
+	  "count": 0,
+	  "short": "鼓核",
+	  "description": "独行：恢复6点士气",
+	  "effects": {
+		"morale_gain": 6
+	  },
+	  "is_unique": true,
+	  "tags": [
+		"辅助",
+		"士气",
+        "独行"
+	  ]
+	}
+  ],
+  "characters": [
+	{
+	  "id": "warrior_a",
+	  "name": "战士",
+	  "profession": "warrior",
+	  "profession_name": "战士",
+	  "role": "稳定输出",
+	  "allowed_card_slots": 1,
+	  "stats": {
+		"strength": 14,
+		"hp": 90,
+		"will": 6,
+		"speed": 8
+	  }
+	},
+	{
+	  "id": "ranger_a",
+	  "name": "射手",
+	  "profession": "ranger",
+	  "profession_name": "射手",
+	  "role": "高速单体输出",
+	  "allowed_card_slots": 1,
+	  "stats": {
+		"strength": 16,
+		"hp": 65,
+		"will": 5,
+		"speed": 12
+	  }
+	},
+	{
+	  "id": "guardian_a",
+	  "name": "坦克",
+	  "profession": "guardian",
+	  "profession_name": "守护者",
+	  "role": "承伤与保护",
+	  "allowed_card_slots": 1,
+	  "stats": {
+		"strength": 8,
+		"hp": 130,
+		"will": 8,
+		"speed": 5
+	  }
+	},
+	{
+	  "id": "priest_a",
+	  "name": "牧师",
+	  "profession": "priest",
+	  "profession_name": "牧师",
+	  "role": "治疗与护盾",
+	  "allowed_card_slots": 1,
+	  "stats": {
+		"strength": 6,
+		"hp": 75,
+		"will": 16,
+		"speed": 7
+	  }
+	}
+  ],
+  "default_builds": [
+	{
+	  "card_id": "sweep",
+	  "module_id": "basic_damage_white",
+	  "anchor": [
+		0,
+		0
+	  ],
+	  "rotation": 0
+	},
+	{
+	  "card_id": "sweep",
+	  "module_id": "pierce_white",
+	  "anchor": [
+		0,
+		1
+	  ],
+	  "rotation": 1
+	},
+	{
+	  "card_id": "precise_strike",
+	  "module_id": "basic_damage_white",
+	  "anchor": [
+		2,
+		0
+	  ],
+	  "rotation": 0
+	},
+	{
+	  "card_id": "precise_strike",
+	  "module_id": "basic_damage_white",
+	  "anchor": [
+		0,
+		1
+	  ],
+	  "rotation": 0
+	},
+	{
+	  "card_id": "precise_strike",
+	  "module_id": "lone_blow_white",
+	  "anchor": [
+		0,
+		0
+	  ],
+	  "rotation": 0
+	},
+	{
+	  "card_id": "tactical_support",
+	  "module_id": "haste_white",
+	  "anchor": [
+		0,
+		0
+	  ],
+	  "rotation": 0
+	},
+	{
+	  "card_id": "tactical_support",
+	  "module_id": "guard_white",
+	  "anchor": [
+		1,
+		1
+	  ],
+	  "rotation": 0
+	},
+	{
+	  "card_id": "tactical_support",
+	  "module_id": "strong_shield_white",
+	  "anchor": [
+		1,
+		0
+	  ],
+	  "rotation": 0
+	},
+	{
+	  "card_id": "guardian_prayer",
+	  "module_id": "basic_heal_white",
+	  "anchor": [
+		0,
+		0
+	  ],
+	  "rotation": 0
+	},
+	{
+	  "card_id": "guardian_prayer",
+	  "module_id": "strong_heal_white",
+	  "anchor": [
+		0,
+		1
+	  ],
+	  "rotation": 0
+	},
+	{
+	  "card_id": "guardian_prayer",
+	  "module_id": "basic_shield_white",
+	  "anchor": [
+		2,
+		0
+	  ],
+	  "rotation": 0
+	},
+	{
+	  "card_id": "guardian_prayer",
+	  "module_id": "inspire_white",
+	  "anchor": [
+		0,
+		2
+	  ],
+	  "rotation": 0
+	}
+  ]
+}

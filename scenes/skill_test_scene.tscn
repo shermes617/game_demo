@@ -1,0 +1,146 @@
+[gd_scene format=3 uid="uid://bhhg2fvfphlrx"]
+
+[ext_resource type="Script" uid="uid://chxhwq3rc4auu" path="res://scripts/skill_test_scene.gd" id="1_skilltest"]
+
+[node name="SkillTestScene" type="Control" unique_id=2119092956]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1_skilltest")
+
+[node name="Background" type="ColorRect" parent="." unique_id=1722529188]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+color = Color(0.0745098, 0.0862745, 0.113725, 1)
+
+[node name="MainMargin" type="MarginContainer" parent="." unique_id=1738902145]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_constants/margin_left = 28
+theme_override_constants/margin_top = 24
+theme_override_constants/margin_right = 28
+theme_override_constants/margin_bottom = 24
+
+[node name="MainVBox" type="VBoxContainer" parent="MainMargin" unique_id=1980309697]
+layout_mode = 2
+theme_override_constants/separation = 14
+
+[node name="Header" type="VBoxContainer" parent="MainMargin/MainVBox" unique_id=1707339931]
+layout_mode = 2
+theme_override_constants/separation = 8
+
+[node name="TitleLabel" type="Label" parent="MainMargin/MainVBox/Header" unique_id=595924750]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_font_sizes/font_size = 32
+text = "战斗测试界面"
+
+[node name="SubtitleLabel" type="Label" parent="MainMargin/MainVBox/Header" unique_id=1328601485]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_font_sizes/font_size = 15
+text = "1 名玩家角色对 1 个敌方木桩，验证构筑结果是否真实影响伤害、治疗、护盾、穿透和 Buff。"
+autowrap_mode = 3
+
+[node name="ContentRow" type="HBoxContainer" parent="MainMargin/MainVBox" unique_id=1495182781]
+layout_mode = 2
+size_flags_vertical = 3
+theme_override_constants/separation = 14
+
+[node name="LeftColumn" type="VBoxContainer" parent="MainMargin/MainVBox/ContentRow" unique_id=1417015191]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+theme_override_constants/separation = 14
+
+[node name="PlayerPanel" type="PanelContainer" parent="MainMargin/MainVBox/ContentRow/LeftColumn" unique_id=1852832294]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_vertical = 3
+
+[node name="PlayerLabel" type="RichTextLabel" parent="MainMargin/MainVBox/ContentRow/LeftColumn/PlayerPanel" unique_id=1622190245]
+unique_name_in_owner = true
+layout_mode = 2
+bbcode_enabled = true
+fit_content = true
+scroll_active = false
+
+[node name="DummyPanel" type="PanelContainer" parent="MainMargin/MainVBox/ContentRow/LeftColumn" unique_id=1511450371]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_vertical = 3
+
+[node name="DummyLabel" type="RichTextLabel" parent="MainMargin/MainVBox/ContentRow/LeftColumn/DummyPanel" unique_id=859825418]
+unique_name_in_owner = true
+layout_mode = 2
+bbcode_enabled = true
+fit_content = true
+scroll_active = false
+
+[node name="SkillPanel" type="PanelContainer" parent="MainMargin/MainVBox/ContentRow" unique_id=847067272]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(520, 0)
+layout_mode = 2
+size_flags_vertical = 3
+
+[node name="SkillVBox" type="VBoxContainer" parent="MainMargin/MainVBox/ContentRow/SkillPanel" unique_id=1915811086]
+layout_mode = 2
+theme_override_constants/separation = 10
+
+[node name="SkillTitle" type="Label" parent="MainMargin/MainVBox/ContentRow/SkillPanel/SkillVBox" unique_id=1121345147]
+layout_mode = 2
+theme_override_font_sizes/font_size = 22
+text = "技能按钮"
+
+[node name="SkillList" type="VBoxContainer" parent="MainMargin/MainVBox/ContentRow/SkillPanel/SkillVBox" unique_id=2009337168]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_vertical = 3
+theme_override_constants/separation = 10
+
+[node name="Controls" type="HBoxContainer" parent="MainMargin/MainVBox/ContentRow/SkillPanel/SkillVBox" unique_id=1723165026]
+layout_mode = 2
+theme_override_constants/separation = 10
+
+[node name="EndTurnButton" type="Button" parent="MainMargin/MainVBox/ContentRow/SkillPanel/SkillVBox/Controls" unique_id=1191097425]
+unique_name_in_owner = true
+layout_mode = 2
+text = "结束回合 +1 能量"
+
+[node name="ResetButton" type="Button" parent="MainMargin/MainVBox/ContentRow/SkillPanel/SkillVBox/Controls" unique_id=123387874]
+unique_name_in_owner = true
+layout_mode = 2
+text = "重置沙盒"
+
+[node name="PrepareButton" type="Button" parent="MainMargin/MainVBox/ContentRow/SkillPanel/SkillVBox/Controls" unique_id=335239227]
+unique_name_in_owner = true
+layout_mode = 2
+text = "返回确认"
+
+[node name="BattleButton" type="Button" parent="MainMargin/MainVBox/ContentRow/SkillPanel/SkillVBox/Controls" unique_id=1555277297]
+unique_name_in_owner = true
+layout_mode = 2
+text = "进入基础战斗"
+
+[node name="LogPanel" type="PanelContainer" parent="MainMargin/MainVBox" unique_id=1062620024]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(0, 170)
+layout_mode = 2
+
+[node name="LogLabel" type="RichTextLabel" parent="MainMargin/MainVBox/LogPanel" unique_id=1865173709]
+unique_name_in_owner = true
+layout_mode = 2
+bbcode_enabled = true
+fit_content = true
+scroll_active = false
