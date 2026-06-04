@@ -55,6 +55,7 @@ func _ready() -> void:
 	BattleRuntime.ensure_ready()
 	randomize()
 	_style_scene()
+	_apply_static_texts()
 	next_action_button.pressed.connect(_advance_turn)
 	_start_demo()
 
@@ -2179,8 +2180,6 @@ func _timed_status_effect_text(status: Dictionary) -> String:
 func _style_scene() -> void:
 	# 初始化静态 UI 文案、颜色、面板样式。
 	# 战斗内隐藏返回准备按钮，避免进入战斗后破坏流程。
-	%TitleLabel.text = "PVE 搜打撤战斗 Demo"
-	%SubtitleLabel.text = "3x3 站位、能量、士气、普攻/技能/撤退、重伤，以及战后撤离/深入选择。"
 	%TitleLabel.add_theme_font_size_override("font_size", 36)
 	%SubtitleLabel.add_theme_font_size_override("font_size", 18)
 	%TitleLabel.add_theme_color_override("font_color", Color("f6f7fb"))
@@ -2198,6 +2197,13 @@ func _style_scene() -> void:
 	for button in [next_action_button]:
 		_style_button(button)
 	_create_info_popup()
+
+
+func _apply_static_texts() -> void:
+	%TitleLabel.text = _text("UI_BATTLE_TITLE")
+	%SubtitleLabel.text = _text("UI_BATTLE_SUBTITLE")
+	next_action_button.text = _text("UI_NEXT_ACTION")
+	back_button.text = _text("UI_RETURN_TO_SKILL_SANDBOX")
 
 
 func _create_info_popup() -> void:
@@ -2291,3 +2297,10 @@ func _style_button(button: Button) -> void:
 	button.add_theme_stylebox_override("disabled", style)
 	button.add_theme_color_override("font_color", Color("eff3fb"))
 	button.add_theme_color_override("font_disabled_color", Color("8a93a3"))
+
+
+func _text(key: String) -> String:
+	var database := get_node_or_null("/root/TextDatabase")
+	if database != null and database.has_method("get_text"):
+		return str(database.call("get_text", key))
+	return key

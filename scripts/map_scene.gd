@@ -28,6 +28,7 @@ func _ready() -> void:
 	if not bool(BattleRuntime.exploration_state.get("is_exploration_active", false)):
 		BattleRuntime.start_exploration()
 	_style_scene()
+	_apply_static_texts()
 	if bool(BattleRuntime.exploration_state.get("shop_open", false)):
 		_show_shop()
 		return
@@ -39,28 +40,33 @@ func _refresh() -> void:
 	_set_shop_layout(false)
 	var current_step: int = int(BattleRuntime.exploration_state.get("current_step", 0))
 	var display_step: int = mini(current_step + 1, MAP_STEPS.size())
-	title_label.text = "探索地图"
+	title_label.text = _text("UI_MAP_TITLE")
 	var lines: PackedStringArray = PackedStringArray()
-	lines.append("[b]探索进度[/b]：第 %d / %d 步" % [display_step, MAP_STEPS.size()])
-	lines.append("士气：%d | 金币：%d" % [BattleRuntime.saved_morale, BattleRuntime.gold])
-	lines.append("遗物：%s" % BattleRuntime.owned_relic_text())
+	lines.append(_format_text("MAP_PROGRESS_LINE", {"step": display_step, "total": MAP_STEPS.size()}))
+	lines.append(_format_text("MAP_RESOURCES_LINE", {"morale": BattleRuntime.saved_morale, "gold": BattleRuntime.gold}))
+	lines.append(_format_text("MAP_RELICS_LINE", {"relics": BattleRuntime.owned_relic_text()}))
 	lines.append("")
-	lines.append("[b]队伍状态[/b]")
+	lines.append(_text("MAP_PARTY_STATUS_HEADER"))
 	var snapshot: Array = BattleRuntime.get_party_snapshot()
 	if snapshot.is_empty():
-		lines.append("尚未经历战斗，队伍状态完整。")
+		lines.append(_text("MAP_PARTY_STATUS_EMPTY"))
 	else:
 		for unit in snapshot:
-			lines.append("%s HP %d/%d 重伤 %d" % [unit["name"], int(unit["hp"]), int(unit["max_hp"]), int(unit.get("injury_marks", 0))])
+			lines.append(_format_text("MAP_PARTY_UNIT_STATUS", {
+				"name": unit["name"],
+				"hp": int(unit["hp"]),
+				"max_hp": int(unit["max_hp"]),
+				"injury": int(unit.get("injury_marks", 0))
+			}))
 	status_label.text = "\n".join(lines)
 
-	var build: Button = _add_action("进入构筑调整")
+	var build: Button = _add_action(_text("UI_ENTER_BUILD_ADJUSTMENT"))
 	build.pressed.connect(func() -> void:
 		get_tree().change_scene_to_file("res://scenes/skill_build_scene.tscn")
 	)
 
 	if current_step >= MAP_STEPS.size():
-		var end: Button = _add_action("探索已完成")
+		var end: Button = _add_action(_text("UI_EXPLORATION_COMPLETE"))
 		end.disabled = true
 		_rebuild_map(MAP_STEPS.size())
 		return
@@ -114,19 +120,19 @@ func _show_shop(message: String = "") -> void:
 	_clear_actions()
 	_set_shop_layout(true)
 	BattleRuntime.ensure_shop_offers()
-	title_label.text = "商店"
+	title_label.text = _text("MAP_SHOP_TITLE")
 	var lines: PackedStringArray = PackedStringArray()
-	lines.append("[b]商店[/b]")
-	lines.append("金币：%d | 下次刷新：%d 金币" % [BattleRuntime.gold, BattleRuntime.shop_refresh_cost])
-	lines.append("遗物：%s" % BattleRuntime.owned_relic_text())
+	lines.append(_text("MAP_SHOP_HEADER"))
+	lines.append(_format_text("MAP_SHOP_REFRESH_LINE", {"gold": BattleRuntime.gold, "cost": BattleRuntime.shop_refresh_cost}))
+	lines.append(_format_text("MAP_RELICS_LINE", {"relics": BattleRuntime.owned_relic_text()}))
 	lines.append("")
-	lines.append("可购买 3 个随机绿色模组。出售只能出售未安装在技能卡上的模组。")
+	lines.append(_text("MAP_SHOP_HELP"))
 	if not message.is_empty():
 		lines.append("")
 		lines.append("[color=#80d4ff]%s[/color]" % message)
 	status_label.text = "\n".join(lines)
 
-	var build: Button = _add_action("进入构筑调整")
+	var build: Button = _add_action(_text("UI_ENTER_BUILD_ADJUSTMENT"))
 	build.pressed.connect(func() -> void:
 		get_tree().change_scene_to_file("res://scenes/skill_build_scene.tscn")
 	)
@@ -139,25 +145,25 @@ func _show_shop(message: String = "") -> void:
 		var module: Dictionary = BattleRuntime.modules[module_id]
 		var sold: bool = bool(offer.get("sold", false))
 		var price: int = int(offer.get("price", 0))
-		var text := "%s%s\n价格：%d 金币\n%s\n%s" % [
-			"已售出：" if sold else "购买：",
-			module["name"],
-			price,
-			BattleRuntime.module_shape_text(module["shape"], module["size"]),
-			module["description"]
-		]
+		var text := _format_text("MAP_SHOP_OFFER_TEXT", {
+			"prefix": _text("MAP_SHOP_SOLD_PREFIX") if sold else _text("MAP_SHOP_BUY_PREFIX"),
+			"name": module["name"],
+			"price": price,
+			"shape": BattleRuntime.module_shape_text(module["shape"], module["size"]),
+			"description": module["description"]
+		})
 		var button: Button = _add_action(text)
 		button.disabled = sold or BattleRuntime.gold < price
 		button.pressed.connect(_buy_shop_offer.bind(index))
 
-	var sell: Button = _add_action("出售模块")
+	var sell: Button = _add_action(_text("MAP_SELL_MODULE_ACTION"))
 	sell.pressed.connect(_show_sell_modules)
 
-	var refresh: Button = _add_action("刷新商店（%d 金币）" % BattleRuntime.shop_refresh_cost)
+	var refresh: Button = _add_action(_format_text("MAP_REFRESH_SHOP_ACTION", {"cost": BattleRuntime.shop_refresh_cost}))
 	refresh.disabled = BattleRuntime.gold < BattleRuntime.shop_refresh_cost
 	refresh.pressed.connect(_refresh_shop_offers)
 
-	var leave: Button = _add_action("离开商店，继续探索")
+	var leave: Button = _add_action(_text("MAP_LEAVE_SHOP_ACTION"))
 	leave.pressed.connect(func() -> void:
 		BattleRuntime.exploration_state["shop_open"] = false
 		_refresh()
@@ -167,42 +173,42 @@ func _show_shop(message: String = "") -> void:
 
 func _buy_shop_offer(index: int) -> void:
 	if index < 0 or index >= BattleRuntime.shop_offers.size():
-		_show_shop("这个商品已经不存在。")
+		_show_shop(_text("MAP_SHOP_ITEM_MISSING"))
 		return
 	var offer: Dictionary = BattleRuntime.shop_offers[index]
 	if bool(offer.get("sold", false)):
-		_show_shop("这个模组已经售出。")
+		_show_shop(_text("MAP_SHOP_ITEM_SOLD"))
 		return
 	var module_id: String = str(offer.get("module_id", ""))
 	var price: int = int(offer.get("price", 0))
 	if not BattleRuntime.spend_gold(price):
-		_show_shop("金币不足，无法购买。")
+		_show_shop(_text("MAP_SHOP_NOT_ENOUGH_GOLD_BUY"))
 		return
 	BattleRuntime.add_module_to_inventory(module_id, 1)
 	offer["sold"] = true
 	BattleRuntime.shop_offers[index] = offer
 	var module: Dictionary = BattleRuntime.modules[module_id]
-	_show_shop("购买成功：%s，花费 %d 金币。" % [module["name"], price])
+	_show_shop(_format_text("MAP_SHOP_BUY_SUCCESS", {"name": module["name"], "price": price}))
 
 
 func _refresh_shop_offers() -> void:
 	var cost: int = BattleRuntime.shop_refresh_cost
 	if not BattleRuntime.spend_gold(cost):
-		_show_shop("金币不足，无法刷新。")
+		_show_shop(_text("MAP_SHOP_NOT_ENOUGH_GOLD_REFRESH"))
 		return
 	BattleRuntime.roll_shop_offers()
 	BattleRuntime.shop_refresh_cost += 10
-	_show_shop("商店已刷新，花费 %d 金币。" % cost)
+	_show_shop(_format_text("MAP_SHOP_REFRESH_SUCCESS", {"cost": cost}))
 
 
 func _show_sell_modules(message: String = "") -> void:
 	_clear_actions()
 	_set_shop_layout(true)
-	title_label.text = "出售模块"
+	title_label.text = _text("MAP_SELL_TITLE")
 	var lines: PackedStringArray = PackedStringArray()
-	lines.append("[b]出售模块[/b]")
-	lines.append("金币：%d" % BattleRuntime.gold)
-	lines.append("白色模块售价 15 金币，绿色模块售价 30 金币。只能出售未安装在技能卡上的模块。")
+	lines.append(_text("MAP_SELL_HEADER"))
+	lines.append(_format_text("MAP_GOLD_LINE", {"gold": BattleRuntime.gold}))
+	lines.append(_text("MAP_SELL_HELP"))
 	if not message.is_empty():
 		lines.append("")
 		lines.append("[color=#80d4ff]%s[/color]" % message)
@@ -216,15 +222,20 @@ func _show_sell_modules(message: String = "") -> void:
 		has_sellable = true
 		var module: Dictionary = BattleRuntime.modules[module_id]
 		var price: int = BattleRuntime.get_module_sell_price(module_id)
-		var button: Button = _add_action("出售：%s x%d\n价格：%d 金币\n%s" % [module["name"], available, price, module["description"]])
+		var button: Button = _add_action(_format_text("MAP_SELL_OFFER_TEXT", {
+			"name": module["name"],
+			"count": available,
+			"price": price,
+			"description": module["description"]
+		}))
 		button.pressed.connect(_sell_module.bind(module_id))
 	if not has_sellable:
-		var empty: Button = _add_action("没有可出售的未安装模块")
+		var empty: Button = _add_action(_text("MAP_SELL_EMPTY_ACTION"))
 		empty.disabled = true
 
-	var back: Button = _add_action("返回商店")
+	var back: Button = _add_action(_text("MAP_BACK_TO_SHOP"))
 	back.pressed.connect(_show_shop)
-	var build: Button = _add_action("进入构筑调整")
+	var build: Button = _add_action(_text("UI_ENTER_BUILD_ADJUSTMENT"))
 	build.pressed.connect(func() -> void:
 		get_tree().change_scene_to_file("res://scenes/skill_build_scene.tscn")
 	)
@@ -233,15 +244,15 @@ func _show_sell_modules(message: String = "") -> void:
 
 func _sell_module(module_id: String) -> void:
 	if BattleRuntime.get_module_available_count(module_id) <= 0:
-		_show_sell_modules("这个模组已安装或库存不足，无法出售。")
+		_show_sell_modules(_text("MAP_SELL_NOT_AVAILABLE"))
 		return
 	var price: int = BattleRuntime.get_module_sell_price(module_id)
 	if not BattleRuntime.remove_module_from_inventory(module_id, 1):
-		_show_sell_modules("出售失败：库存不足。")
+		_show_sell_modules(_text("MAP_SELL_FAILED_STOCK"))
 		return
 	BattleRuntime.add_gold(price)
 	var module: Dictionary = BattleRuntime.modules[module_id]
-	_show_sell_modules("出售成功：%s，获得 %d 金币。" % [module["name"], price])
+	_show_sell_modules(_format_text("MAP_SELL_SUCCESS", {"name": module["name"], "price": price}))
 
 
 func _use_campfire() -> void:
@@ -256,9 +267,9 @@ func _use_campfire() -> void:
 	BattleRuntime.has_party_snapshot = true
 	BattleRuntime.saved_morale = clamp(BattleRuntime.saved_morale + 20, 0, 100)
 	_clear_actions()
-	title_label.text = "火堆"
-	status_label.text = "[b]火堆休整[/b]\n所有未死亡角色恢复 30% 最大生命值。\n士气 +20。\n\n当前士气：%d | 金币：%d" % [BattleRuntime.saved_morale, BattleRuntime.gold]
-	var continue_button: Button = _add_action("继续探索")
+	title_label.text = _text("MAP_CAMPFIRE_TITLE")
+	status_label.text = _format_text("MAP_CAMPFIRE_STATUS", {"morale": BattleRuntime.saved_morale, "gold": BattleRuntime.gold})
+	var continue_button: Button = _add_action(_text("MAP_CONTINUE_EXPLORATION"))
 	continue_button.pressed.connect(_refresh)
 	_rebuild_map(int(BattleRuntime.exploration_state.get("current_step", 0)) - 1)
 
@@ -301,37 +312,37 @@ func _rebuild_map(current_step: int) -> void:
 
 
 func _node_short_label(node_type: String, is_current: bool, is_completed: bool) -> String:
-	var prefix: String = "▶ " if is_current else "✓ " if is_completed else ""
+	var prefix: String = _text("MAP_CURRENT_PREFIX") if is_current else _text("MAP_COMPLETED_PREFIX") if is_completed else ""
 	match node_type:
 		"normal":
-			return "%s小怪" % prefix
+			return "%s%s" % [prefix, _text("MAP_NODE_NORMAL")]
 		"elite":
-			return "%s精英" % prefix
+			return "%s%s" % [prefix, _text("MAP_NODE_ELITE")]
 		"boss":
-			return "%sBoss" % prefix
+			return "%s%s" % [prefix, _text("MAP_NODE_BOSS")]
 		"chest":
-			return "%s宝箱" % prefix
+			return "%s%s" % [prefix, _text("MAP_NODE_CHEST")]
 		"shop":
-			return "%s商店" % prefix
+			return "%s%s" % [prefix, _text("MAP_NODE_SHOP")]
 		"campfire":
-			return "%s火堆" % prefix
+			return "%s%s" % [prefix, _text("MAP_NODE_CAMPFIRE")]
 	return "%s%s" % [prefix, node_type]
 
 
 func _node_label(node_type: String) -> String:
 	match node_type:
 		"normal":
-			return "小怪"
+			return _text("MAP_NODE_NORMAL")
 		"elite":
-			return "精英"
+			return _text("MAP_NODE_ELITE")
 		"boss":
-			return "Boss"
+			return _text("MAP_NODE_BOSS")
 		"chest":
-			return "宝箱：获得绿色模组"
+			return _text("MAP_NODE_CHEST_ACTION")
 		"shop":
-			return "商店"
+			return _text("MAP_NODE_SHOP")
 		"campfire":
-			return "火堆：恢复生命与士气"
+			return _text("MAP_NODE_CAMPFIRE_ACTION")
 	return node_type
 
 
@@ -360,6 +371,11 @@ func _clear_actions() -> void:
 func _clear_container(container: Node) -> void:
 	for child in container.get_children():
 		child.queue_free()
+
+
+func _apply_static_texts() -> void:
+	title_label.text = _text("UI_MAP_TITLE")
+	map_title.text = _text("UI_MAP_OVERVIEW_TITLE")
 
 
 func _style_scene() -> void:
@@ -437,3 +453,20 @@ func _map_node_style(has_node: bool, completed: bool, current: bool) -> StyleBox
 	style.content_margin_right = 8
 	style.content_margin_bottom = 8
 	return style
+
+
+func _text(key: String) -> String:
+	var database := get_node_or_null("/root/TextDatabase")
+	if database != null and database.has_method("get_text"):
+		return str(database.call("get_text", key))
+	return key
+
+
+func _format_text(key: String, params: Dictionary) -> String:
+	var database := get_node_or_null("/root/TextDatabase")
+	if database != null and database.has_method("format_text"):
+		return str(database.call("format_text", key, params))
+	var text := _text(key)
+	for param_key in params.keys():
+		text = text.replace("{%s}" % str(param_key), str(params[param_key]))
+	return text

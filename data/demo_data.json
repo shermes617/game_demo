@@ -2,10 +2,10 @@
   "cards": [
 	{
 	  "id": "precise_strike",
-	  "name": "精准打击",
+	  "name_key": "SKILL_PRECISE_STRIKE_NAME",
 	  "rarity": "green",
-	  "target_type": "敌方单体",
-	  "target_summary": "对敌方单体发动一次高爆发打击。",
+	  "target_key": "SKILL_PRECISE_STRIKE_TARGET",
+	  "target_summary_key": "SKILL_PRECISE_STRIKE_SUMMARY",
 	  "energy_curve": "single",
 	  "allowed_professions": [
         "ranger"
@@ -49,16 +49,16 @@
 			1
 		  ],
 		  "type": "damage_boost",
-		  "label": "伤害模组效果 +30%"
+		  "label_key": "SPECIAL_DAMAGE_BOOST_LABEL"
 		}
 	  ]
 	},
 	{
 	  "id": "guardian_prayer",
-	  "name": "守护祷言",
+	  "name_key": "SKILL_GUARDIAN_PRAYER_NAME",
 	  "rarity": "green",
-	  "target_type": "我方单体 / 相邻单位",
-	  "target_summary": "治疗目标，并照顾一名相邻队友。",
+	  "target_key": "SKILL_GUARDIAN_PRAYER_TARGET",
+	  "target_summary_key": "SKILL_GUARDIAN_PRAYER_SUMMARY",
 	  "energy_curve": "range",
 	  "allowed_professions": [
         "priest"
@@ -98,7 +98,7 @@
 			0
 		  ],
 		  "type": "heal_boost",
-		  "label": "治疗效果 +25%"
+		  "label_key": "SPECIAL_HEAL_BOOST_LABEL"
 		},
 		{
 		  "pos": [
@@ -106,16 +106,16 @@
 			1
 		  ],
 		  "type": "shield_boost",
-		  "label": "护盾效果 +20%"
+		  "label_key": "SPECIAL_SHIELD_BOOST_LABEL"
 		}
 	  ]
 	},
 	{
 	  "id": "sweep",
-	  "name": "横扫",
+	  "name_key": "SKILL_SWEEP_NAME",
 	  "rarity": "white",
-	  "target_type": "敌方第一列全体单位",
-	  "target_summary": "压制敌方第一列的全部前排单位。",
+	  "target_key": "SKILL_SWEEP_TARGET",
+	  "target_summary_key": "SKILL_SWEEP_SUMMARY",
 	  "energy_curve": "range",
 	  "allowed_professions": [
         "warrior"
@@ -147,16 +147,16 @@
 			2
 		  ],
 		  "type": "anti_shield",
-		  "label": "对护盾目标伤害 +20%"
+		  "label_key": "SPECIAL_ANTI_SHIELD_LABEL"
 		}
 	  ]
 	},
 	{
 	  "id": "tactical_support",
-	  "name": "战术支援",
+	  "name_key": "SKILL_TACTICAL_SUPPORT_NAME",
 	  "rarity": "white",
-	  "target_type": "自身 / 相邻我方单位",
-	  "target_summary": "为相邻友军提供护盾、减伤和加速。",
+	  "target_key": "SKILL_TACTICAL_SUPPORT_TARGET",
+	  "target_summary_key": "SKILL_TACTICAL_SUPPORT_SUMMARY",
 	  "energy_curve": "single",
 	  "allowed_professions": [
 		"guardian",
@@ -193,7 +193,7 @@
 			1
 		  ],
 		  "type": "support_duration",
-		  "label": "辅助效果持续时间 +1 回合"
+		  "label_key": "SPECIAL_SUPPORT_DURATION_LABEL"
 		}
 	  ]
 	}
@@ -201,7 +201,7 @@
   "modules": [
 	{
 	  "id": "small_damage_white",
-	  "name": "小型伤害",
+	  "name_key": "MODULE_SMALL_DAMAGE_WHITE_NAME",
 	  "shape": [
 		[
 		  0,
@@ -218,19 +218,19 @@
 	  ],
 	  "category": "damage",
 	  "count": 0,
-	  "short": "伤",
-	  "description": "造成 40% 力量伤害",
+	  "short_key": "MODULE_SMALL_DAMAGE_WHITE_SHORT",
+	  "desc_key": "MODULE_SMALL_DAMAGE_WHITE_DESC",
 	  "effects": {
 		"damage_pct": 40.0
 	  },
 	  "quality": "white",
-	  "tags": [
-        "伤害"
+	  "tag_keys": [
+        "MODULE_TAG_DAMAGE"
 	  ]
 	},
 	{
 	  "id": "heavy_strike_white",
-	  "name": "强击模块",
+	  "name_key": "MODULE_HEAVY_STRIKE_WHITE_NAME",
 	  "shape": [
 		[
 		  0,
@@ -247,19 +247,19 @@
 	  ],
 	  "category": "damage",
 	  "count": 0,
-	  "short": "强",
-	  "description": "+70% 力量伤害",
+	  "short_key": "MODULE_HEAVY_STRIKE_WHITE_SHORT",
+	  "desc_key": "MODULE_HEAVY_STRIKE_WHITE_DESC",
 	  "effects": {
 		"damage_pct": 70.0
 	  },
 	  "quality": "white",
-	  "tags": [
-        "伤害"
+	  "tag_keys": [
+        "MODULE_TAG_DAMAGE"
 	  ]
 	},
 	{
 	  "id": "pierce_white",
-	  "name": "穿刺模块",
+	  "name_key": "MODULE_PIERCE_WHITE_NAME",
 	  "shape": [
 		[
 		  0,
@@ -276,21 +276,21 @@
 	  ],
 	  "category": "damage",
 	  "count": 1,
-	  "short": "穿",
-	  "description": "+60% 力量伤害，20% 穿透",
+	  "short_key": "MODULE_PIERCE_WHITE_SHORT",
+	  "desc_key": "MODULE_PIERCE_WHITE_DESC",
 	  "effects": {
 		"damage_pct": 60.0,
 		"pierce_pct": 20.0
 	  },
 	  "quality": "white",
-	  "tags": [
-		"伤害",
-        "穿透"
+	  "tag_keys": [
+		"MODULE_TAG_DAMAGE",
+		"MODULE_TAG_PIERCE"
 	  ]
 	},
 	{
 	  "id": "lone_blow_white",
-	  "name": "独行·重击",
+	  "name_key": "MODULE_LONE_BLOW_WHITE_NAME",
 	  "shape": [
 		[
 		  0,
@@ -307,21 +307,21 @@
 	  ],
 	  "category": "damage",
 	  "count": 1,
-	  "short": "独",
-	  "description": "+120% 力量伤害，每张技能卡仅限 1 个",
+	  "short_key": "MODULE_LONE_BLOW_WHITE_SHORT",
+	  "desc_key": "MODULE_LONE_BLOW_WHITE_DESC",
 	  "is_unique": true,
 	  "effects": {
 		"damage_pct": 120.0
 	  },
 	  "quality": "white",
-	  "tags": [
-		"伤害",
-        "独行"
+	  "tag_keys": [
+		"MODULE_TAG_DAMAGE",
+		"MODULE_TAG_SOLO"
 	  ]
 	},
 	{
 	  "id": "small_heal_white",
-	  "name": "小型治疗",
+	  "name_key": "MODULE_SMALL_HEAL_WHITE_NAME",
 	  "shape": [
 		[
 		  0,
@@ -338,19 +338,19 @@
 	  ],
 	  "category": "heal",
 	  "count": 0,
-	  "short": "疗",
-	  "description": "恢复 40% 意志生命",
+	  "short_key": "MODULE_SMALL_HEAL_WHITE_SHORT",
+	  "desc_key": "MODULE_SMALL_HEAL_WHITE_DESC",
 	  "effects": {
 		"heal_pct": 40.0
 	  },
 	  "quality": "white",
-	  "tags": [
-        "治疗"
+	  "tag_keys": [
+        "MODULE_TAG_HEAL"
 	  ]
 	},
 	{
 	  "id": "blessing_white",
-	  "name": "祝福模块",
+	  "name_key": "MODULE_BLESSING_WHITE_NAME",
 	  "shape": [
 		[
 		  0,
@@ -367,20 +367,20 @@
 	  ],
 	  "category": "support",
 	  "count": 1,
-	  "short": "福",
-	  "description": "恢复 50% 意志生命，并获得 50% 意志护盾",
+	  "short_key": "MODULE_BLESSING_WHITE_SHORT",
+	  "desc_key": "MODULE_BLESSING_WHITE_DESC",
 	  "effects": {
 		"heal_pct": 50.0,
 		"shield_pct": 50.0
 	  },
 	  "quality": "white",
-	  "tags": [
-        "辅助"
+	  "tag_keys": [
+        "MODULE_TAG_SUPPORT"
 	  ]
 	},
 	{
 	  "id": "haste_white",
-	  "name": "加速模块",
+	  "name_key": "MODULE_HASTE_WHITE_NAME",
 	  "shape": [
 		[
 		  0,
@@ -397,21 +397,21 @@
 	  ],
 	  "category": "support",
 	  "count": 1,
-	  "short": "速",
-	  "description": "速度 +3，持续 1 回合",
+	  "short_key": "MODULE_HASTE_WHITE_SHORT",
+	  "desc_key": "MODULE_HASTE_WHITE_DESC",
 	  "effects": {
 		"speed_buff": 3,
 		"duration": 1
 	  },
 	  "quality": "white",
-	  "tags": [
-		"辅助",
-        "加速"
+	  "tag_keys": [
+		"MODULE_TAG_SUPPORT",
+		"MODULE_TAG_SPEED"
 	  ]
 	},
 	{
 	  "id": "guard_white",
-	  "name": "稳固模块",
+	  "name_key": "MODULE_GUARD_WHITE_NAME",
 	  "shape": [
 		[
 		  0,
@@ -424,21 +424,21 @@
 	  ],
 	  "category": "support",
 	  "count": 1,
-	  "short": "稳",
-	  "description": "受到伤害 -20%，持续 1 回合",
+	  "short_key": "MODULE_GUARD_WHITE_SHORT",
+	  "desc_key": "MODULE_GUARD_WHITE_DESC",
 	  "effects": {
 		"damage_reduction_pct": 20,
 		"duration": 1
 	  },
 	  "quality": "white",
-	  "tags": [
-		"辅助",
-        "减伤"
+	  "tag_keys": [
+		"MODULE_TAG_SUPPORT",
+		"MODULE_TAG_DAMAGE_REDUCTION"
 	  ]
 	},
 	{
 	  "id": "basic_damage_white",
-	  "name": "基础打击",
+	  "name_key": "MODULE_BASIC_DAMAGE_WHITE_NAME",
 	  "quality": "white",
 	  "shape": [
 		[
@@ -452,19 +452,19 @@
 	  ],
 	  "category": "damage",
 	  "count": 3,
-	  "short": "打",
-	  "description": "造成 30% 力量伤害",
+	  "short_key": "MODULE_BASIC_DAMAGE_WHITE_SHORT",
+	  "desc_key": "MODULE_BASIC_DAMAGE_WHITE_DESC",
 	  "effects": {
 		"damage_pct": 30.0
 	  },
 	  "reward_excluded": true,
-	  "tags": [
-        "伤害"
+	  "tag_keys": [
+        "MODULE_TAG_DAMAGE"
 	  ]
 	},
 	{
 	  "id": "small_damage_green",
-	  "name": "小型伤害+",
+	  "name_key": "MODULE_SMALL_DAMAGE_GREEN_NAME",
 	  "quality": "green",
 	  "shape": [
 		[
@@ -478,18 +478,18 @@
 	  ],
 	  "category": "damage",
 	  "count": 0,
-	  "short": "打+",
-	  "description": "造成 52% 力量伤害",
+	  "short_key": "MODULE_SMALL_DAMAGE_GREEN_SHORT",
+	  "desc_key": "MODULE_SMALL_DAMAGE_GREEN_DESC",
 	  "effects": {
 		"damage_pct": 52.0
 	  },
-	  "tags": [
-        "伤害"
+	  "tag_keys": [
+        "MODULE_TAG_DAMAGE"
 	  ]
 	},
 	{
 	  "id": "heavy_damage_white",
-	  "name": "强力打击",
+	  "name_key": "MODULE_HEAVY_DAMAGE_WHITE_NAME",
 	  "quality": "white",
 	  "shape": [
 		[
@@ -507,18 +507,18 @@
 	  ],
 	  "category": "damage",
 	  "count": 0,
-	  "short": "强",
-	  "description": "造成 70% 力量伤害",
+	  "short_key": "MODULE_HEAVY_DAMAGE_WHITE_SHORT",
+	  "desc_key": "MODULE_HEAVY_DAMAGE_WHITE_DESC",
 	  "effects": {
 		"damage_pct": 70.0
 	  },
-	  "tags": [
-        "伤害"
+	  "tag_keys": [
+        "MODULE_TAG_DAMAGE"
 	  ]
 	},
 	{
 	  "id": "heavy_damage_green",
-	  "name": "强力打击+",
+	  "name_key": "MODULE_HEAVY_DAMAGE_GREEN_NAME",
 	  "quality": "green",
 	  "shape": [
 		[
@@ -536,18 +536,18 @@
 	  ],
 	  "category": "damage",
 	  "count": 0,
-	  "short": "强+",
-	  "description": "造成 91% 力量伤害",
+	  "short_key": "MODULE_HEAVY_DAMAGE_GREEN_SHORT",
+	  "desc_key": "MODULE_HEAVY_DAMAGE_GREEN_DESC",
 	  "effects": {
 		"damage_pct": 91.0
 	  },
-	  "tags": [
-        "伤害"
+	  "tag_keys": [
+        "MODULE_TAG_DAMAGE"
 	  ]
 	},
 	{
 	  "id": "basic_shield_white",
-	  "name": "基础护盾",
+	  "name_key": "MODULE_BASIC_SHIELD_WHITE_NAME",
 	  "quality": "white",
 	  "shape": [
 		[
@@ -561,19 +561,19 @@
 	  ],
 	  "category": "shield",
 	  "count": 1,
-	  "short": "盾",
-	  "description": "获得 35% 意志护盾",
+	  "short_key": "MODULE_BASIC_SHIELD_WHITE_SHORT",
+	  "desc_key": "MODULE_BASIC_SHIELD_WHITE_DESC",
 	  "effects": {
 		"shield_pct": 35.0
 	  },
 	  "reward_excluded": true,
-	  "tags": [
-        "护盾"
+	  "tag_keys": [
+        "MODULE_TAG_SHIELD"
 	  ]
 	},
 	{
 	  "id": "small_shield_green",
-	  "name": "小型护盾+",
+	  "name_key": "MODULE_SMALL_SHIELD_GREEN_NAME",
 	  "quality": "green",
 	  "shape": [
 		[
@@ -587,18 +587,18 @@
 	  ],
 	  "category": "shield",
 	  "count": 0,
-	  "short": "盾+",
-	  "description": "获得 55% 意志护盾",
+	  "short_key": "MODULE_SMALL_SHIELD_GREEN_SHORT",
+	  "desc_key": "MODULE_SMALL_SHIELD_GREEN_DESC",
 	  "effects": {
 		"shield_pct": 55.0
 	  },
-	  "tags": [
-        "护盾"
+	  "tag_keys": [
+        "MODULE_TAG_SHIELD"
 	  ]
 	},
 	{
 	  "id": "strong_shield_white",
-	  "name": "坚固护盾",
+	  "name_key": "MODULE_STRONG_SHIELD_WHITE_NAME",
 	  "quality": "white",
 	  "shape": [
 		[
@@ -616,18 +616,18 @@
 	  ],
 	  "category": "shield",
 	  "count": 2,
-	  "short": "坚",
-	  "description": "获得 80% 意志护盾",
+	  "short_key": "MODULE_STRONG_SHIELD_WHITE_SHORT",
+	  "desc_key": "MODULE_STRONG_SHIELD_WHITE_DESC",
 	  "effects": {
 		"shield_pct": 80.0
 	  },
-	  "tags": [
-        "护盾"
+	  "tag_keys": [
+        "MODULE_TAG_SHIELD"
 	  ]
 	},
 	{
 	  "id": "strong_shield_green",
-	  "name": "坚固护盾+",
+	  "name_key": "MODULE_STRONG_SHIELD_GREEN_NAME",
 	  "quality": "green",
 	  "shape": [
 		[
@@ -645,18 +645,18 @@
 	  ],
 	  "category": "shield",
 	  "count": 0,
-	  "short": "坚+",
-	  "description": "获得 104% 意志护盾",
+	  "short_key": "MODULE_STRONG_SHIELD_GREEN_SHORT",
+	  "desc_key": "MODULE_STRONG_SHIELD_GREEN_DESC",
 	  "effects": {
 		"shield_pct": 104.0
 	  },
-	  "tags": [
-        "护盾"
+	  "tag_keys": [
+        "MODULE_TAG_SHIELD"
 	  ]
 	},
 	{
 	  "id": "basic_heal_white",
-	  "name": "基础治疗",
+	  "name_key": "MODULE_BASIC_HEAL_WHITE_NAME",
 	  "quality": "white",
 	  "shape": [
 		[
@@ -670,19 +670,19 @@
 	  ],
 	  "category": "heal",
 	  "count": 1,
-	  "short": "疗",
-	  "description": "恢复 30% 意志生命",
+	  "short_key": "MODULE_BASIC_HEAL_WHITE_SHORT",
+	  "desc_key": "MODULE_BASIC_HEAL_WHITE_DESC",
 	  "effects": {
 		"heal_pct": 30.0
 	  },
 	  "reward_excluded": true,
-	  "tags": [
-        "治疗"
+	  "tag_keys": [
+        "MODULE_TAG_HEAL"
 	  ]
 	},
 	{
 	  "id": "small_heal_green",
-	  "name": "小型治疗+",
+	  "name_key": "MODULE_SMALL_HEAL_GREEN_NAME",
 	  "quality": "green",
 	  "shape": [
 		[
@@ -696,18 +696,18 @@
 	  ],
 	  "category": "heal",
 	  "count": 0,
-	  "short": "疗+",
-	  "description": "恢复 52% 意志生命",
+	  "short_key": "MODULE_SMALL_HEAL_GREEN_SHORT",
+	  "desc_key": "MODULE_SMALL_HEAL_GREEN_DESC",
 	  "effects": {
 		"heal_pct": 52.0
 	  },
-	  "tags": [
-        "治疗"
+	  "tag_keys": [
+        "MODULE_TAG_HEAL"
 	  ]
 	},
 	{
 	  "id": "strong_heal_white",
-	  "name": "强效治疗",
+	  "name_key": "MODULE_STRONG_HEAL_WHITE_NAME",
 	  "quality": "white",
 	  "shape": [
 		[
@@ -725,18 +725,18 @@
 	  ],
 	  "category": "heal",
 	  "count": 1,
-	  "short": "愈",
-	  "description": "恢复 70% 意志生命",
+	  "short_key": "MODULE_STRONG_HEAL_WHITE_SHORT",
+	  "desc_key": "MODULE_STRONG_HEAL_WHITE_DESC",
 	  "effects": {
 		"heal_pct": 70.0
 	  },
-	  "tags": [
-        "治疗"
+	  "tag_keys": [
+        "MODULE_TAG_HEAL"
 	  ]
 	},
 	{
 	  "id": "strong_heal_green",
-	  "name": "强效治疗+",
+	  "name_key": "MODULE_STRONG_HEAL_GREEN_NAME",
 	  "quality": "green",
 	  "shape": [
 		[
@@ -754,18 +754,18 @@
 	  ],
 	  "category": "heal",
 	  "count": 0,
-	  "short": "愈+",
-	  "description": "恢复 91% 意志生命",
+	  "short_key": "MODULE_STRONG_HEAL_GREEN_SHORT",
+	  "desc_key": "MODULE_STRONG_HEAL_GREEN_DESC",
 	  "effects": {
 		"heal_pct": 91.0
 	  },
-	  "tags": [
-        "治疗"
+	  "tag_keys": [
+        "MODULE_TAG_HEAL"
 	  ]
 	},
 	{
 	  "id": "vulnerable_white",
-	  "name": "破绽",
+	  "name_key": "MODULE_VULNERABLE_WHITE_NAME",
 	  "quality": "white",
 	  "shape": [
 		[
@@ -779,22 +779,22 @@
 	  ],
 	  "category": "status",
 	  "count": 0,
-	  "short": "易",
-	  "description": "施加 1 层易伤",
+	  "short_key": "MODULE_VULNERABLE_WHITE_SHORT",
+	  "desc_key": "MODULE_VULNERABLE_WHITE_DESC",
 	  "effects": {
 		"status": {
 		  "id": "vulnerable",
 		  "layers": 1
 		}
 	  },
-	  "tags": [
-		"状态",
-        "易伤"
+	  "tag_keys": [
+		"MODULE_TAG_STATUS",
+		"MODULE_TAG_VULNERABLE"
 	  ]
 	},
 	{
 	  "id": "vulnerable_green",
-	  "name": "破绽+",
+	  "name_key": "MODULE_VULNERABLE_GREEN_NAME",
 	  "quality": "green",
 	  "shape": [
 		[
@@ -808,22 +808,22 @@
 	  ],
 	  "category": "status",
 	  "count": 1,
-	  "short": "易+",
-	  "description": "施加 2 层易伤",
+	  "short_key": "MODULE_VULNERABLE_GREEN_SHORT",
+	  "desc_key": "MODULE_VULNERABLE_GREEN_DESC",
 	  "effects": {
 		"status": {
 		  "id": "vulnerable",
 		  "layers": 2
 		}
 	  },
-	  "tags": [
-		"状态",
-        "易伤"
+	  "tag_keys": [
+		"MODULE_TAG_STATUS",
+		"MODULE_TAG_VULNERABLE"
 	  ]
 	},
 	{
 	  "id": "weak_white",
-	  "name": "虚弱",
+	  "name_key": "MODULE_WEAK_WHITE_NAME",
 	  "quality": "white",
 	  "shape": [
 		[
@@ -837,22 +837,22 @@
 	  ],
 	  "category": "status",
 	  "count": 0,
-	  "short": "虚",
-	  "description": "施加 1 层虚弱",
+	  "short_key": "MODULE_WEAK_WHITE_SHORT",
+	  "desc_key": "MODULE_WEAK_WHITE_DESC",
 	  "effects": {
 		"status": {
 		  "id": "weak",
 		  "layers": 1
 		}
 	  },
-	  "tags": [
-		"状态",
-        "虚弱"
+	  "tag_keys": [
+		"MODULE_TAG_STATUS",
+		"MODULE_TAG_WEAK"
 	  ]
 	},
 	{
 	  "id": "weak_green",
-	  "name": "虚弱+",
+	  "name_key": "MODULE_WEAK_GREEN_NAME",
 	  "quality": "green",
 	  "shape": [
 		[
@@ -866,22 +866,22 @@
 	  ],
 	  "category": "status",
 	  "count": 1,
-	  "short": "虚+",
-	  "description": "施加 2 层虚弱",
+	  "short_key": "MODULE_WEAK_GREEN_SHORT",
+	  "desc_key": "MODULE_WEAK_GREEN_DESC",
 	  "effects": {
 		"status": {
 		  "id": "weak",
 		  "layers": 2
 		}
 	  },
-	  "tags": [
-		"状态",
-        "虚弱"
+	  "tag_keys": [
+		"MODULE_TAG_STATUS",
+		"MODULE_TAG_WEAK"
 	  ]
 	},
 	{
 	  "id": "burn_white",
-	  "name": "灼烧",
+	  "name_key": "MODULE_BURN_WHITE_NAME",
 	  "quality": "white",
 	  "shape": [
 		[
@@ -899,8 +899,8 @@
 	  ],
 	  "category": "status",
 	  "count": 0,
-	  "short": "灼",
-	  "description": "施加 60% 力量层灼烧",
+	  "short_key": "MODULE_BURN_WHITE_SHORT",
+	  "desc_key": "MODULE_BURN_WHITE_DESC",
 	  "effects": {
 		"status": {
 		  "id": "burn",
@@ -908,14 +908,14 @@
 		  "scale_pct": 60.0
 		}
 	  },
-	  "tags": [
-		"状态",
-        "灼烧"
+	  "tag_keys": [
+		"MODULE_TAG_STATUS",
+		"MODULE_TAG_BURN"
 	  ]
 	},
 	{
 	  "id": "burn_green",
-	  "name": "灼烧+",
+	  "name_key": "MODULE_BURN_GREEN_NAME",
 	  "quality": "green",
 	  "shape": [
 		[
@@ -933,8 +933,8 @@
 	  ],
 	  "category": "status",
 	  "count": 0,
-	  "short": "灼+",
-	  "description": "施加 78% 力量灼烧",
+	  "short_key": "MODULE_BURN_GREEN_SHORT",
+	  "desc_key": "MODULE_BURN_GREEN_DESC",
 	  "effects": {
 		"status": {
 		  "id": "burn",
@@ -943,14 +943,14 @@
 		  "flat": 0
 		}
 	  },
-	  "tags": [
-		"状态",
-        "灼烧"
+	  "tag_keys": [
+		"MODULE_TAG_STATUS",
+		"MODULE_TAG_BURN"
 	  ]
 	},
 	{
 	  "id": "cold_white",
-	  "name": "寒冷",
+	  "name_key": "MODULE_COLD_WHITE_NAME",
 	  "quality": "white",
 	  "shape": [
 		[
@@ -964,22 +964,22 @@
 	  ],
 	  "category": "status",
 	  "count": 0,
-	  "short": "寒",
-	  "description": "施加 2 层寒冷",
+	  "short_key": "MODULE_COLD_WHITE_SHORT",
+	  "desc_key": "MODULE_COLD_WHITE_DESC",
 	  "effects": {
 		"status": {
 		  "id": "cold",
 		  "layers": 2
 		}
 	  },
-	  "tags": [
-		"状态",
-        "寒冷"
+	  "tag_keys": [
+		"MODULE_TAG_STATUS",
+		"MODULE_TAG_COLD"
 	  ]
 	},
 	{
 	  "id": "cold_green",
-	  "name": "寒冷+",
+	  "name_key": "MODULE_COLD_GREEN_NAME",
 	  "quality": "green",
 	  "shape": [
 		[
@@ -993,22 +993,22 @@
 	  ],
 	  "category": "status",
 	  "count": 1,
-	  "short": "寒+",
-	  "description": "施加 3 层寒冷",
+	  "short_key": "MODULE_COLD_GREEN_SHORT",
+	  "desc_key": "MODULE_COLD_GREEN_DESC",
 	  "effects": {
 		"status": {
 		  "id": "cold",
 		  "layers": 3
 		}
 	  },
-	  "tags": [
-		"状态",
-        "寒冷"
+	  "tag_keys": [
+		"MODULE_TAG_STATUS",
+		"MODULE_TAG_COLD"
 	  ]
 	},
 	{
 	  "id": "inspire_white",
-	  "name": "鼓舞",
+	  "name_key": "MODULE_INSPIRE_WHITE_NAME",
 	  "quality": "white",
 	  "shape": [
 		[
@@ -1022,19 +1022,19 @@
 	  ],
 	  "category": "support",
 	  "count": 1,
-	  "short": "鼓",
-	  "description": "恢复 3 士气",
+	  "short_key": "MODULE_INSPIRE_WHITE_SHORT",
+	  "desc_key": "MODULE_INSPIRE_WHITE_DESC",
 	  "effects": {
 		"morale_gain": 3
 	  },
-	  "tags": [
-		"辅助",
-        "士气"
+	  "tag_keys": [
+		"MODULE_TAG_SUPPORT",
+		"MODULE_TAG_MORALE"
 	  ]
 	},
 	{
 	  "id": "inspire_green",
-	  "name": "鼓舞+",
+	  "name_key": "MODULE_INSPIRE_GREEN_NAME",
 	  "quality": "green",
 	  "shape": [
 		[
@@ -1048,19 +1048,19 @@
 	  ],
 	  "category": "support",
 	  "count": 0,
-	  "short": "鼓+",
-	  "description": "恢复 5 士气",
+	  "short_key": "MODULE_INSPIRE_GREEN_SHORT",
+	  "desc_key": "MODULE_INSPIRE_GREEN_DESC",
 	  "effects": {
 		"morale_gain": 5
 	  },
-	  "tags": [
-		"辅助",
-        "士气"
+	  "tag_keys": [
+		"MODULE_TAG_SUPPORT",
+		"MODULE_TAG_MORALE"
 	  ]
 	},
 	{
 	  "id": "morale_shield_white",
-	  "name": "士气护盾",
+	  "name_key": "MODULE_MORALE_SHIELD_WHITE_NAME",
 	  "quality": "white",
 	  "shape": [
 		[
@@ -1074,22 +1074,22 @@
 	  ],
 	  "category": "shield",
 	  "count": 0,
-	  "short": "气盾",
-	  "description": "消耗 3 士气，并入本技能护盾：+75% 意志护盾",
+	  "short_key": "MODULE_MORALE_SHIELD_WHITE_SHORT",
+	  "desc_key": "MODULE_MORALE_SHIELD_WHITE_DESC",
 	  "effects": {
 		"morale_shield": {
 		  "cost": 3,
 		  "shield_pct": 75.0
 		}
 	  },
-	  "tags": [
-		"护盾",
-        "士气"
+	  "tag_keys": [
+		"MODULE_TAG_SHIELD",
+		"MODULE_TAG_MORALE"
 	  ]
 	},
 	{
 	  "id": "morale_shield_green",
-	  "name": "士气护盾+",
+	  "name_key": "MODULE_MORALE_SHIELD_GREEN_NAME",
 	  "quality": "green",
 	  "shape": [
 		[
@@ -1103,22 +1103,22 @@
 	  ],
 	  "category": "shield",
 	  "count": 0,
-	  "short": "气盾+",
-	  "description": "消耗 5 士气，并入本技能护盾：+98% 意志护盾",
+	  "short_key": "MODULE_MORALE_SHIELD_GREEN_SHORT",
+	  "desc_key": "MODULE_MORALE_SHIELD_GREEN_DESC",
 	  "effects": {
 		"morale_shield": {
 		  "cost": 5,
 		  "shield_pct": 98.0
 		}
 	  },
-	  "tags": [
-		"护盾",
-        "士气"
+	  "tag_keys": [
+		"MODULE_TAG_SHIELD",
+		"MODULE_TAG_MORALE"
 	  ]
 	},
 	{
 	  "id": "morale_damage_white",
-	  "name": "士气打击",
+	  "name_key": "MODULE_MORALE_DAMAGE_WHITE_NAME",
 	  "quality": "white",
 	  "shape": [
 		[
@@ -1132,22 +1132,22 @@
 	  ],
 	  "category": "damage",
 	  "count": 0,
-	  "short": "气打",
-	  "description": "消耗 5 士气，并入本技能伤害：+60% 力量伤害",
+	  "short_key": "MODULE_MORALE_DAMAGE_WHITE_SHORT",
+	  "desc_key": "MODULE_MORALE_DAMAGE_WHITE_DESC",
 	  "effects": {
 		"morale_damage": {
 		  "cost": 5,
 		  "damage_pct": 60.0
 		}
 	  },
-	  "tags": [
-		"伤害",
-        "士气"
+	  "tag_keys": [
+		"MODULE_TAG_DAMAGE",
+		"MODULE_TAG_MORALE"
 	  ]
 	},
 	{
 	  "id": "morale_damage_green",
-	  "name": "士气打击+",
+	  "name_key": "MODULE_MORALE_DAMAGE_GREEN_NAME",
 	  "quality": "green",
 	  "shape": [
 		[
@@ -1161,22 +1161,22 @@
 	  ],
 	  "category": "damage",
 	  "count": 0,
-	  "short": "气打+",
-	  "description": "消耗 7 士气，并入本技能伤害：+78% 力量伤害",
+	  "short_key": "MODULE_MORALE_DAMAGE_GREEN_SHORT",
+	  "desc_key": "MODULE_MORALE_DAMAGE_GREEN_DESC",
 	  "effects": {
 		"morale_damage": {
 		  "cost": 7,
 		  "damage_pct": 78.0
 		}
 	  },
-	  "tags": [
-		"伤害",
-        "士气"
+	  "tag_keys": [
+		"MODULE_TAG_DAMAGE",
+		"MODULE_TAG_MORALE"
 	  ]
 	},
 	{
 	  "id": "burning_strike_white",
-	  "name": "灼烧打击",
+	  "name_key": "MODULE_BURNING_STRIKE_WHITE_NAME",
 	  "quality": "white",
 	  "shape": [
 		[
@@ -1190,21 +1190,21 @@
 	  ],
 	  "category": "status",
 	  "count": 1,
-	  "short": "灼核",
-	  "description": "根据相邻伤害模组施加灼烧",
+	  "short_key": "MODULE_BURNING_STRIKE_WHITE_SHORT",
+	  "desc_key": "MODULE_BURNING_STRIKE_WHITE_DESC",
 	  "effects": {
 		"burning_strike_factor": 0.5
 	  },
 	  "is_unique": true,
-	  "tags": [
-		"状态",
-		"灼烧",
-        "独行"
+	  "tag_keys": [
+		"MODULE_TAG_STATUS",
+		"MODULE_TAG_BURN",
+		"MODULE_TAG_SOLO"
 	  ]
 	},
 	{
 	  "id": "burning_strike_green",
-	  "name": "灼烧打击+",
+	  "name_key": "MODULE_BURNING_STRIKE_GREEN_NAME",
 	  "quality": "green",
 	  "shape": [
 		[
@@ -1218,21 +1218,21 @@
 	  ],
 	  "category": "status",
 	  "count": 0,
-	  "short": "灼核+",
-	  "description": "根据相邻伤害模组施加灼烧",
+	  "short_key": "MODULE_BURNING_STRIKE_GREEN_SHORT",
+	  "desc_key": "MODULE_BURNING_STRIKE_GREEN_DESC",
 	  "effects": {
 		"burning_strike_factor": 0.65
 	  },
 	  "is_unique": true,
-	  "tags": [
-		"状态",
-		"灼烧",
-        "独行"
+	  "tag_keys": [
+		"MODULE_TAG_STATUS",
+		"MODULE_TAG_BURN",
+		"MODULE_TAG_SOLO"
 	  ]
 	},
 	{
 	  "id": "inspire_core_white",
-	  "name": "鼓舞核心",
+	  "name_key": "MODULE_INSPIRE_CORE_WHITE_NAME",
 	  "quality": "white",
 	  "shape": [
 		[
@@ -1246,26 +1246,26 @@
 	  ],
 	  "category": "support",
 	  "count": 0,
-	  "short": "鼓核",
-	  "description": "独行：恢复6点士气",
+	  "short_key": "MODULE_INSPIRE_CORE_WHITE_SHORT",
+	  "desc_key": "MODULE_INSPIRE_CORE_WHITE_DESC",
 	  "effects": {
 		"morale_gain": 6
 	  },
 	  "is_unique": true,
-	  "tags": [
-		"辅助",
-		"士气",
-        "独行"
+	  "tag_keys": [
+		"MODULE_TAG_SUPPORT",
+		"MODULE_TAG_MORALE",
+		"MODULE_TAG_SOLO"
 	  ]
 	}
   ],
   "characters": [
 	{
 	  "id": "warrior_a",
-	  "name": "战士",
+	  "name_key": "CHARACTER_WARRIOR_A_NAME",
 	  "profession": "warrior",
-	  "profession_name": "战士",
-	  "role": "稳定输出",
+	  "profession_name_key": "CHARACTER_WARRIOR_A_PROFESSION",
+	  "role_key": "CHARACTER_WARRIOR_A_ROLE",
 	  "allowed_card_slots": 1,
 	  "stats": {
 		"strength": 14,
@@ -1276,10 +1276,10 @@
 	},
 	{
 	  "id": "ranger_a",
-	  "name": "射手",
+	  "name_key": "CHARACTER_RANGER_A_NAME",
 	  "profession": "ranger",
-	  "profession_name": "射手",
-	  "role": "高速单体输出",
+	  "profession_name_key": "CHARACTER_RANGER_A_PROFESSION",
+	  "role_key": "CHARACTER_RANGER_A_ROLE",
 	  "allowed_card_slots": 1,
 	  "stats": {
 		"strength": 16,
@@ -1290,10 +1290,10 @@
 	},
 	{
 	  "id": "guardian_a",
-	  "name": "坦克",
+	  "name_key": "CHARACTER_GUARDIAN_A_NAME",
 	  "profession": "guardian",
-	  "profession_name": "守护者",
-	  "role": "承伤与保护",
+	  "profession_name_key": "CHARACTER_GUARDIAN_A_PROFESSION",
+	  "role_key": "CHARACTER_GUARDIAN_A_ROLE",
 	  "allowed_card_slots": 1,
 	  "stats": {
 		"strength": 8,
@@ -1304,10 +1304,10 @@
 	},
 	{
 	  "id": "priest_a",
-	  "name": "牧师",
+	  "name_key": "CHARACTER_PRIEST_A_NAME",
 	  "profession": "priest",
-	  "profession_name": "牧师",
-	  "role": "治疗与护盾",
+	  "profession_name_key": "CHARACTER_PRIEST_A_PROFESSION",
+	  "role_key": "CHARACTER_PRIEST_A_ROLE",
 	  "allowed_card_slots": 1,
 	  "stats": {
 		"strength": 6,

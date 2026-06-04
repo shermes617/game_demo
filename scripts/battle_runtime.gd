@@ -4,22 +4,23 @@ extends Node
 # 构筑页负责编辑技能卡和角色装备；战斗页只消费这里保存的最终数据。
 # 做成 Autoload 后，场景切换时当前构筑不会丢失。
 const DATA_PATH := "res://data/demo_data.json"
+const TEXT_DATABASE_SCRIPT := preload("res://scripts/database/text_database.gd")
 const RELICS := {
 	"empty_bag_battery": {
-		"name": "空袋电池",
-		"description": "回合结束时若能量为 0，下回合开始额外获得 1 能量。"
+		"name_key": "RELIC_EMPTY_BAG_BATTERY_NAME",
+		"desc_key": "RELIC_EMPTY_BAG_BATTERY_DESC"
 	},
 	"full_cell_battery": {
-		"name": "满格电池",
-		"description": "回合结束时若能量不为 0，下回合开始额外获得 1 能量。"
+		"name_key": "RELIC_FULL_CELL_BATTERY_NAME",
+		"desc_key": "RELIC_FULL_CELL_BATTERY_DESC"
 	},
 	"full_roster_banner": {
-		"name": "满员旗帜",
-		"description": "回合结束时若我方未死亡人数不少于 4，士气 +4。"
+		"name_key": "RELIC_FULL_ROSTER_BANNER_NAME",
+		"desc_key": "RELIC_FULL_ROSTER_BANNER_DESC"
 	},
 	"remnant_badge": {
-		"name": "残队徽章",
-		"description": "回合结束时若我方未死亡人数少于 4，士气 +3。"
+		"name_key": "RELIC_REMNANT_BADGE_NAME",
+		"desc_key": "RELIC_REMNANT_BADGE_DESC"
 	}
 }
 const RELIC_ORDER := ["empty_bag_battery", "full_cell_battery", "full_roster_banner", "remnant_badge"]
@@ -57,6 +58,7 @@ var party_snapshot: Array = []
 var has_battle_checkpoint := false
 var battle_checkpoint: Dictionary = {}
 var owned_relic_ids: Array = []
+var fallback_text_database: Node
 
 # 构筑页进入战斗准备页后会置为 true。
 # 如果玩家返回构筑页，构筑页会用它恢复之前的编辑结果。
@@ -82,12 +84,12 @@ func load_data() -> void:
 	# 后续格子校验、旋转、特殊格触发都会使用 Vector2i。
 	var file := FileAccess.open(DATA_PATH, FileAccess.READ)
 	if file == null:
-		push_error("无法打开数据文件：%s" % DATA_PATH)
+		push_error(_format_text("ERROR_OPEN_DATA_FILE", {"path": DATA_PATH}))
 		return
 
 	var parsed = JSON.parse_string(file.get_as_text())
 	if typeof(parsed) != TYPE_DICTIONARY:
-		push_error("数据文件格式不正确：%s" % DATA_PATH)
+		push_error(_format_text("ERROR_DATA_FILE_FORMAT", {"path": DATA_PATH}))
 		return
 
 	var raw: Dictionary = parsed
@@ -102,10 +104,16 @@ func load_data() -> void:
 
 	for card_data in raw.get("cards", []):
 		var card: Dictionary = card_data.duplicate(true)
+		_resolve_text_fields(card, {
+			"name_key": "name",
+			"target_key": "target_type",
+			"target_summary_key": "target_summary"
+		})
 		card["active_cells"] = _coords(card.get("active_cells", []))
 		var special_slots: Array = []
 		for slot_data in card.get("special_slots", []):
 			var slot: Dictionary = slot_data.duplicate(true)
+			_resolve_text_fields(slot, {"label_key": "label"})
 			slot["pos"] = _pair_to_vector(slot["pos"])
 			special_slots.append(slot)
 		card["special_slots"] = special_slots
@@ -115,6 +123,12 @@ func load_data() -> void:
 
 	for module_data in raw.get("modules", []):
 		var module: Dictionary = module_data.duplicate(true)
+		_resolve_text_fields(module, {
+			"name_key": "name",
+			"short_key": "short",
+			"desc_key": "description"
+		})
+		_resolve_text_array_field(module, "tag_keys", "tags")
 		module["shape"] = _coords(module.get("shape", []))
 		module["size"] = _pair_to_vector(module["size"])
 		module["effects"] = module.get("effects", {}).duplicate(true)
@@ -123,6 +137,11 @@ func load_data() -> void:
 
 	for character_data in raw.get("characters", []):
 		var character: Dictionary = character_data.duplicate(true)
+		_resolve_text_fields(character, {
+			"name_key": "name",
+			"profession_name_key": "profession_name",
+			"role_key": "role"
+		})
 		character["allowed_card_slots"] = int(character.get("allowed_card_slots", 1))
 		characters.append(character)
 
@@ -362,7 +381,12 @@ func get_party_snapshot() -> Array:
 
 
 func get_relic(relic_id: String) -> Dictionary:
-	return RELICS.get(relic_id, {})
+	var relic: Dictionary = RELICS.get(relic_id, {}).duplicate(true)
+	if relic.has("name_key"):
+		relic["name"] = _text(str(relic["name_key"]))
+	if relic.has("desc_key"):
+		relic["description"] = _text(str(relic["desc_key"]))
+	return relic
 
 
 func has_relic(relic_id: String) -> bool:
@@ -392,7 +416,7 @@ func roll_relic_choices(count: int = 3) -> Array:
 
 func owned_relic_text() -> String:
 	if owned_relic_ids.is_empty():
-		return "无"
+		return _text("RUNTIME_NONE")
 	var names := PackedStringArray()
 	for relic_id in owned_relic_ids:
 		var relic: Dictionary = get_relic(str(relic_id))
@@ -496,27 +520,27 @@ func generate_skill_for_card(card_index: int) -> Dictionary:
 				"damage_boost":
 					if effects.has("damage_pct"):
 						effects["damage_pct"] *= 1.3
-						module_specials.append("%s 触发：%s" % [module["name"], special["label"]])
+						module_specials.append(_format_text("BUILD_SPECIAL_TRIGGER", {"module": module["name"], "label": special["label"]}))
 				"heal_boost":
 					if effects.has("heal_pct"):
 						effects["heal_pct"] *= 1.25
-						module_specials.append("%s 触发：%s" % [module["name"], special["label"]])
+						module_specials.append(_format_text("BUILD_SPECIAL_TRIGGER", {"module": module["name"], "label": special["label"]}))
 				"shield_boost":
 					if effects.has("shield_pct"):
 						effects["shield_pct"] *= 1.2
-						module_specials.append("%s 触发：%s" % [module["name"], special["label"]])
+						module_specials.append(_format_text("BUILD_SPECIAL_TRIGGER", {"module": module["name"], "label": special["label"]}))
 					if effects.has("morale_shield"):
 						var morale_shield: Dictionary = effects["morale_shield"]
 						morale_shield["shield_pct"] = float(morale_shield.get("shield_pct", 0.0)) * 1.2
-						module_specials.append("%s 触发：%s" % [module["name"], special["label"]])
+						module_specials.append(_format_text("BUILD_SPECIAL_TRIGGER", {"module": module["name"], "label": special["label"]}))
 				"support_duration":
 					if effects.has("speed_buff") or effects.has("damage_reduction_pct"):
 						module_duration_bonus += 1
-						module_specials.append("%s 触发：%s" % [module["name"], special["label"]])
+						module_specials.append(_format_text("BUILD_SPECIAL_TRIGGER", {"module": module["name"], "label": special["label"]}))
 				"anti_shield":
 					if effects.has("damage_pct"):
 						result["anti_shield_bonus"] = true
-						module_specials.append("%s 触发：%s" % [module["name"], special["label"]])
+						module_specials.append(_format_text("BUILD_SPECIAL_TRIGGER", {"module": module["name"], "label": special["label"]}))
 
 		result["damage_pct"] += effects.get("damage_pct", 0.0)
 		result["heal_pct"] += effects.get("heal_pct", 0.0)
@@ -562,7 +586,10 @@ func generate_skill_for_card(card_index: int) -> Dictionary:
 					"flat": 0,
 					"module_name": module["name"]
 				})
-				result["triggered_specials"].append("%s 读取相邻伤害模组，施加 %.0f%% 力量灼烧" % [module["name"], burn_pct])
+				result["triggered_specials"].append(_format_text("BUILD_BURNING_STRIKE_SPECIAL", {
+					"module": module["name"],
+					"value": "%.0f" % burn_pct
+				}))
 
 	if result["speed_buff"] > 0 or result["damage_reduction_pct"] > 0:
 		result["support_duration"] = max(int(result["speed_duration"]), int(result["damage_reduction_duration"]))
@@ -580,12 +607,15 @@ func skill_effect_summary(skill: Dictionary) -> String:
 		morale_damage_cost += int(morale_damage.get("cost", 0))
 	var total_damage_pct: float = float(skill["damage_pct"]) + morale_damage_pct
 	if total_damage_pct > 0.0:
-		var damage_text := "%.0f%% 力量伤害" % total_damage_pct
+		var damage_text := _format_text("RUNTIME_SUMMARY_DAMAGE", {"value": "%.0f" % total_damage_pct})
 		if morale_damage_pct > 0.0:
-			damage_text += "（含耗 %d 士气的 %.0f%%）" % [morale_damage_cost, morale_damage_pct]
+			damage_text += _format_text("BUILD_PREVIEW_MORALE_APPEND", {
+				"cost": morale_damage_cost,
+				"value": "%.0f" % morale_damage_pct
+			})
 		parts.append(damage_text)
 	if skill["heal_pct"] > 0.0:
-		parts.append("%.0f%% 意志治疗" % skill["heal_pct"])
+		parts.append(_format_text("RUNTIME_SUMMARY_HEAL", {"value": "%.0f" % skill["heal_pct"]}))
 	var morale_shield_pct := 0.0
 	var morale_shield_cost := 0
 	for morale_shield in skill.get("morale_shield_modules", []):
@@ -593,41 +623,57 @@ func skill_effect_summary(skill: Dictionary) -> String:
 		morale_shield_cost += int(morale_shield.get("cost", 0))
 	var total_shield_pct: float = float(skill["shield_pct"]) + morale_shield_pct
 	if total_shield_pct > 0.0:
-		var shield_text := "%.0f%% 意志护盾" % total_shield_pct
+		var shield_text := _format_text("RUNTIME_SUMMARY_SHIELD", {"value": "%.0f" % total_shield_pct})
 		if morale_shield_pct > 0.0:
-			shield_text += "（含耗 %d 士气的 %.0f%%）" % [morale_shield_cost, morale_shield_pct]
+			shield_text += _format_text("BUILD_PREVIEW_MORALE_APPEND", {
+				"cost": morale_shield_cost,
+				"value": "%.0f" % morale_shield_pct
+			})
 		parts.append(shield_text)
 	if skill["pierce_pct"] > 0.0:
-		parts.append("%.0f%% 穿透" % skill["pierce_pct"])
+		parts.append(_format_text("RUNTIME_SUMMARY_PIERCE", {"value": "%.0f" % skill["pierce_pct"]}))
 	if skill["speed_buff"] > 0:
-		parts.append("速度 +%d / %d 回合" % [skill["speed_buff"], int(skill.get("speed_duration", skill["support_duration"]))])
+		parts.append(_format_text("RUNTIME_SUMMARY_SPEED", {
+			"speed": skill["speed_buff"],
+			"turns": int(skill.get("speed_duration", skill["support_duration"]))
+		}))
 	if skill["damage_reduction_pct"] > 0:
-		parts.append("减伤 %d%% / %d 回合" % [skill["damage_reduction_pct"], int(skill.get("damage_reduction_duration", skill["support_duration"]))])
+		parts.append(_format_text("RUNTIME_SUMMARY_REDUCTION", {
+			"value": skill["damage_reduction_pct"],
+			"turns": int(skill.get("damage_reduction_duration", skill["support_duration"]))
+		}))
 	if skill["anti_shield_bonus"]:
-		parts.append("命中护盾目标伤害 +20%")
+		parts.append(_text("RUNTIME_SUMMARY_ANTI_SHIELD"))
 	for status in skill.get("status_modules", []):
 		var status_id := str(status.get("id", ""))
 		if status_id == "burn" and status.has("scale_pct"):
 			var flat_layers: int = int(status.get("flat", 0))
-			var flat_text: String = " + %d 层" % flat_layers if flat_layers > 0 else ""
-			parts.append("灼烧 %.0f%% %s%s" % [float(status.get("scale_pct", 0.0)), str(status.get("scale_stat", "strength")), flat_text])
+			var flat_text: String = _format_text("BUILD_PREVIEW_FLAT_LAYER_APPEND", {"layers": flat_layers}) if flat_layers > 0 else ""
+			parts.append(_format_text("RUNTIME_SUMMARY_BURN", {
+				"value": "%.0f" % float(status.get("scale_pct", 0.0)),
+				"stat": str(status.get("scale_stat", "strength")),
+				"flat": flat_text
+			}))
 		else:
-			parts.append("%s %d 层" % [_status_display_name(status_id), int(status.get("layers", 0))])
-	return "、".join(parts) if not parts.is_empty() else "无效果"
+			parts.append(_format_text("RUNTIME_SUMMARY_STATUS", {
+				"status": _status_display_name(status_id),
+				"layers": int(status.get("layers", 0))
+			}))
+	return "、".join(parts) if not parts.is_empty() else _text("RUNTIME_NO_EFFECT")
 
 
 func _status_display_name(status_id: String) -> String:
 	match status_id:
 		"vulnerable":
-			return "易伤"
+			return _text("STATUS_VULNERABLE")
 		"weak":
-			return "虚弱"
+			return _text("STATUS_WEAK")
 		"burn":
-			return "灼烧"
+			return _text("STATUS_BURN")
 		"cold":
-			return "寒冷"
+			return _text("STATUS_COLD")
 		"freeze":
-			return "冻结"
+			return _text("STATUS_FREEZE")
 	return status_id
 
 
@@ -733,6 +779,44 @@ func _coords(source: Array) -> Array:
 func _pair_to_vector(pair) -> Vector2i:
 	# 单个 [x, y] 坐标转 Vector2i。
 	return Vector2i(int(pair[0]), int(pair[1]))
+
+
+func _resolve_text_fields(record: Dictionary, field_map: Dictionary) -> void:
+	for key_field in field_map.keys():
+		var output_field: String = str(field_map[key_field])
+		if record.has(key_field):
+			record[output_field] = _text(str(record[key_field]))
+
+
+func _resolve_text_array_field(record: Dictionary, key_field: String, output_field: String) -> void:
+	if not record.has(key_field):
+		return
+	var values: Array = []
+	for text_key in record[key_field]:
+		values.append(_text(str(text_key)))
+	record[output_field] = values
+
+
+func _text(key: String) -> String:
+	var database := get_node_or_null("/root/TextDatabase")
+	if database != null and database.has_method("get_text"):
+		return str(database.call("get_text", key))
+	if fallback_text_database == null:
+		fallback_text_database = TEXT_DATABASE_SCRIPT.new()
+		fallback_text_database.call("load_texts")
+	if fallback_text_database.has_method("get_text"):
+		return str(fallback_text_database.call("get_text", key))
+	return key
+
+
+func _format_text(key: String, params: Dictionary) -> String:
+	var database := get_node_or_null("/root/TextDatabase")
+	if database != null and database.has_method("format_text"):
+		return str(database.call("format_text", key, params))
+	var text := _text(key)
+	for param_key in params.keys():
+		text = text.replace("{%s}" % str(param_key), str(params[param_key]))
+	return text
 
 
 func _coord_key(coord: Vector2i) -> String:

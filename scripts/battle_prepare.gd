@@ -9,6 +9,7 @@ extends Control
 func _ready() -> void:
 	BattleRuntime.ensure_ready()
 	_style_scene()
+	_apply_static_texts()
 	_build_roster()
 	start_button.pressed.connect(_start_skill_sandbox)
 	back_button.pressed.connect(func() -> void: get_tree().change_scene_to_file("res://scenes/skill_build_scene.tscn"))
@@ -24,6 +25,14 @@ func _style_scene() -> void:
 		_style_button(button, "primary" if button == start_button else "secondary")
 
 
+func _apply_static_texts() -> void:
+	%TitleLabel.text = _text("UI_BATTLE_PREPARE_TITLE")
+	%SubtitleLabel.text = _text("UI_BATTLE_PREPARE_SUBTITLE")
+	start_button.text = _text("UI_START_BATTLE")
+	back_button.text = _text("UI_RETURN_TO_EQUIP")
+	status_label.text = _text("UI_WAITING_FOR_CONFIRMATION")
+
+
 func _build_roster() -> void:
 	for child in roster_list.get_children():
 		child.queue_free()
@@ -36,20 +45,30 @@ func _build_roster() -> void:
 		var has_valid_skill := false
 
 		if state["equipped_card_ids"].is_empty():
-			card_lines.append("[color=#f1c27d]未装备技能卡[/color]")
-			warnings.append("%s 未装备技能卡。" % character["name"])
+			card_lines.append("[color=#f1c27d]%s[/color]" % _text("PREP_NO_SKILL_CARD"))
+			warnings.append(_format_text("PREP_WARNING_NO_SKILL_CARD", {"character": character["name"]}))
 		else:
 			for card_id in state["equipped_card_ids"]:
 				if not BattleRuntime.card_index_by_id.has(card_id):
-					card_lines.append("[color=#f1c27d]未知技能卡：%s[/color]" % card_id)
+					card_lines.append("[color=#f1c27d]%s[/color]" % _format_text("PREP_UNKNOWN_SKILL_CARD", {"card_id": card_id}))
 					continue
 				var skill: Dictionary = BattleRuntime.generate_skill_for_card(BattleRuntime.card_index_by_id[card_id])
 				var summary := BattleRuntime.skill_effect_summary(skill)
 				if skill["occupied_cells"] <= 0:
-					card_lines.append("[color=#f1c27d]%s | 空技能 | %s[/color]" % [skill["name"], summary])
-					warnings.append("%s 装备了空技能 %s。" % [character["name"], skill["name"]])
+					card_lines.append("[color=#f1c27d]%s[/color]" % _format_text("PREP_EMPTY_SKILL_CARD_LINE", {
+						"skill": skill["name"],
+						"summary": summary
+					}))
+					warnings.append(_format_text("PREP_WARNING_EMPTY_SKILL", {
+						"character": character["name"],
+						"skill": skill["name"]
+					}))
 				else:
-					card_lines.append("%s | %d 能量 | %s" % [skill["name"], skill["energy_cost"], summary])
+					card_lines.append(_format_text("PREP_SKILL_LINE", {
+						"skill": skill["name"],
+						"energy": skill["energy_cost"],
+						"summary": summary
+					}))
 					has_valid_skill = true
 
 		var box := PanelContainer.new()
@@ -68,13 +87,13 @@ func _build_roster() -> void:
 
 		var stats := Label.new()
 		stats.add_theme_color_override("font_color", Color("aeb9ca"))
-		stats.text = "定位：%s | 力量 %d | 生命 %d | 意志 %d | 速度 %d" % [
-			character["role"],
-			character["stats"]["strength"],
-			character["stats"]["hp"],
-			character["stats"]["will"],
-			character["stats"]["speed"]
-		]
+		stats.text = _format_text("PREP_CHARACTER_STATS", {
+			"role": character["role"],
+			"strength": character["stats"]["strength"],
+			"hp": character["stats"]["hp"],
+			"will": character["stats"]["will"],
+			"speed": character["stats"]["speed"]
+		})
 		content.add_child(stats)
 
 		var skills := RichTextLabel.new()
@@ -82,7 +101,7 @@ func _build_roster() -> void:
 		skills.fit_content = true
 		skills.scroll_active = false
 		skills.add_theme_color_override("default_color", Color("dce5f4"))
-		skills.text = "[b]已装备技能[/b]\n%s" % "\n".join(card_lines)
+		skills.text = _format_text("PREP_EQUIPPED_SKILLS_HEADER", {"skills": "\n".join(card_lines)})
 		content.add_child(skills)
 
 	var ready_count := BattleRuntime.get_ready_character_count()
@@ -90,11 +109,11 @@ func _build_roster() -> void:
 	if not warnings.is_empty():
 		warning_text = "\n%s" % "\n".join(warnings)
 	start_button.disabled = ready_count <= 0
-	status_label.text = "可进入战斗验证的角色：%d/%d%s" % [
-		ready_count,
-		BattleRuntime.characters.size(),
-		warning_text
-	]
+	status_label.text = _format_text("PREP_READY_STATUS", {
+		"ready": ready_count,
+		"total": BattleRuntime.characters.size(),
+		"warnings": warning_text
+	})
 
 
 func _start_skill_sandbox() -> void:
@@ -150,3 +169,20 @@ func _button_style(variant: String, brightness: float) -> StyleBoxFlat:
 	style.content_margin_right = 12
 	style.content_margin_bottom = 10
 	return style
+
+
+func _text(key: String) -> String:
+	var database := get_node_or_null("/root/TextDatabase")
+	if database != null and database.has_method("get_text"):
+		return str(database.call("get_text", key))
+	return key
+
+
+func _format_text(key: String, params: Dictionary) -> String:
+	var database := get_node_or_null("/root/TextDatabase")
+	if database != null and database.has_method("format_text"):
+		return str(database.call("format_text", key, params))
+	var text := _text(key)
+	for param_key in params.keys():
+		text = text.replace("{%s}" % str(param_key), str(params[param_key]))
+	return text

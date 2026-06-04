@@ -50,13 +50,13 @@ theme_override_constants/separation = 9
 unique_name_in_owner = true
 layout_mode = 2
 theme_override_font_sizes/font_size = 32
-text = "技能拼图系统 Demo V0"
+text = "UI_SKILL_BUILD_TITLE"
 
 [node name="SubtitleLabel" type="Label" parent="MainMargin/MainVBox/HeaderSection" unique_id=1319667318]
 unique_name_in_owner = true
 layout_mode = 2
 theme_override_font_sizes/font_size = 15
-text = "先构筑技能卡，再切到角色页装备技能"
+text = "UI_SKILL_BUILD_SUBTITLE"
 autowrap_mode = 3
 
 [node name="ViewSwitchRow" type="HBoxContainer" parent="MainMargin/MainVBox/HeaderSection" unique_id=1013926516]
@@ -66,17 +66,17 @@ theme_override_constants/separation = 10
 [node name="CardViewButton" type="Button" parent="MainMargin/MainVBox/HeaderSection/ViewSwitchRow" unique_id=337835993]
 unique_name_in_owner = true
 layout_mode = 2
-text = "技能卡"
+text = "UI_SKILL_CARD_TAB"
 
 [node name="CharacterViewButton" type="Button" parent="MainMargin/MainVBox/HeaderSection/ViewSwitchRow" unique_id=1468032137]
 unique_name_in_owner = true
 layout_mode = 2
-text = "角色"
+text = "UI_CHARACTER_TAB"
 
 [node name="TopBattlePrepareButton" type="Button" parent="MainMargin/MainVBox/HeaderSection/ViewSwitchRow" unique_id=48532130]
 unique_name_in_owner = true
 layout_mode = 2
-text = "进入地图"
+text = "UI_ENTER_MAP"
 
 [node name="ContentRow" type="HBoxContainer" parent="MainMargin/MainVBox" unique_id=2085857114]
 layout_mode = 2
@@ -97,7 +97,7 @@ theme_override_constants/separation = 12
 unique_name_in_owner = true
 layout_mode = 2
 theme_override_font_sizes/font_size = 21
-text = "技能卡与模组"
+text = "UI_SKILL_AND_MODULES"
 
 [node name="LeftScroll" type="ScrollContainer" parent="MainMargin/MainVBox/ContentRow/LeftPanel/LeftVBox" unique_id=78938297]
 layout_mode = 2
@@ -113,7 +113,7 @@ theme_override_constants/separation = 12
 [node name="LeftHintLabel" type="Label" parent="MainMargin/MainVBox/ContentRow/LeftPanel/LeftVBox/LeftScroll/LeftContent" unique_id=472022184]
 unique_name_in_owner = true
 layout_mode = 2
-text = "提示"
+text = "UI_HINT"
 autowrap_mode = 3
 
 [node name="PrimaryList" type="VBoxContainer" parent="MainMargin/MainVBox/ContentRow/LeftPanel/LeftVBox/LeftScroll/LeftContent" unique_id=225394433]
@@ -125,7 +125,7 @@ theme_override_constants/separation = 10
 unique_name_in_owner = true
 layout_mode = 2
 theme_override_font_sizes/font_size = 18
-text = "二级列表"
+text = "UI_SECONDARY_LIST"
 
 [node name="SecondaryList" type="VBoxContainer" parent="MainMargin/MainVBox/ContentRow/LeftPanel/LeftVBox/LeftScroll/LeftContent" unique_id=878731980]
 unique_name_in_owner = true
@@ -135,7 +135,7 @@ theme_override_constants/separation = 10
 [node name="SelectionLabel" type="Label" parent="MainMargin/MainVBox/ContentRow/LeftPanel/LeftVBox/LeftScroll/LeftContent" unique_id=846470276]
 unique_name_in_owner = true
 layout_mode = 2
-text = "当前选择"
+text = "UI_CURRENT_SELECTION"
 autowrap_mode = 3
 
 [node name="CenterPanel" type="PanelContainer" parent="MainMargin/MainVBox/ContentRow" unique_id=1277484335]
@@ -152,7 +152,7 @@ theme_override_constants/separation = 12
 unique_name_in_owner = true
 layout_mode = 2
 theme_override_font_sizes/font_size = 21
-text = "工作区"
+text = "UI_WORKSPACE"
 
 [node name="CardWorkspace" type="VBoxContainer" parent="MainMargin/MainVBox/ContentRow/CenterPanel/CenterVBox" unique_id=1297780635]
 unique_name_in_owner = true
@@ -163,12 +163,12 @@ theme_override_constants/separation = 12
 unique_name_in_owner = true
 layout_mode = 2
 theme_override_font_sizes/font_size = 22
-text = "技能卡信息"
+text = "UI_SKILL_CARD_INFO"
 
 [node name="BoardHintLabel" type="Label" parent="MainMargin/MainVBox/ContentRow/CenterPanel/CenterVBox/CardWorkspace" unique_id=1804871297]
 unique_name_in_owner = true
 layout_mode = 2
-text = "棋盘说明"
+text = "UI_BOARD_HINT"
 autowrap_mode = 3
 
 [node name="BoardGrid" type="GridContainer" parent="MainMargin/MainVBox/ContentRow/CenterPanel/CenterVBox/CardWorkspace" unique_id=1561772593]
@@ -186,17 +186,17 @@ theme_override_constants/separation = 10
 [node name="RotateButton" type="Button" parent="MainMargin/MainVBox/ContentRow/CenterPanel/CenterVBox/CardWorkspace/BoardControls" unique_id=1605411624]
 unique_name_in_owner = true
 layout_mode = 2
-text = "旋转选中模组"
+text = "UI_ROTATE_SELECTED_MODULE"
 
 [node name="ClearButton" type="Button" parent="MainMargin/MainVBox/ContentRow/CenterPanel/CenterVBox/CardWorkspace/BoardControls" unique_id=1469231835]
 unique_name_in_owner = true
 layout_mode = 2
-text = "清空当前技能卡"
+text = "UI_CLEAR_CURRENT_SKILL_CARD"
 
 [node name="DefaultsButton" type="Button" parent="MainMargin/MainVBox/ContentRow/CenterPanel/CenterVBox/CardWorkspace/BoardControls" unique_id=537834379]
 unique_name_in_owner = true
 layout_mode = 2
-text = "恢复推荐构筑"
+text = "UI_RESTORE_RECOMMENDED_BUILD"
 
 [node name="CharacterWorkspace" type="VBoxContainer" parent="MainMargin/MainVBox/ContentRow/CenterPanel/CenterVBox" unique_id=1739565125]
 unique_name_in_owner = true
@@ -208,12 +208,12 @@ theme_override_constants/separation = 14
 unique_name_in_owner = true
 layout_mode = 2
 theme_override_font_sizes/font_size = 24
-text = "角色名"
+text = "UI_CHARACTER_NAME_PLACEHOLDER"
 
 [node name="CharacterProfessionLabel" type="Label" parent="MainMargin/MainVBox/ContentRow/CenterPanel/CenterVBox/CharacterWorkspace" unique_id=1351863261]
 unique_name_in_owner = true
 layout_mode = 2
-text = "职业"
+text = "UI_PROFESSION_PLACEHOLDER"
 
 [node name="CharacterStatsLabel" type="RichTextLabel" parent="MainMargin/MainVBox/ContentRow/CenterPanel/CenterVBox/CharacterWorkspace" unique_id=1643655260]
 unique_name_in_owner = true
@@ -234,7 +234,7 @@ scroll_active = false
 [node name="EquipHintLabel" type="Label" parent="MainMargin/MainVBox/ContentRow/CenterPanel/CenterVBox/CharacterWorkspace" unique_id=601656403]
 unique_name_in_owner = true
 layout_mode = 2
-text = "装备提示"
+text = "UI_EQUIP_HINT"
 autowrap_mode = 3
 
 [node name="CharacterButtonsRow" type="HBoxContainer" parent="MainMargin/MainVBox/ContentRow/CenterPanel/CenterVBox/CharacterWorkspace" unique_id=754673816]
@@ -244,12 +244,12 @@ theme_override_constants/separation = 10
 [node name="EquipSelectedButton" type="Button" parent="MainMargin/MainVBox/ContentRow/CenterPanel/CenterVBox/CharacterWorkspace/CharacterButtonsRow" unique_id=574757954]
 unique_name_in_owner = true
 layout_mode = 2
-text = "装备选中技能卡"
+text = "UI_EQUIP_SELECTED_SKILL_CARD"
 
 [node name="UnequipAllButton" type="Button" parent="MainMargin/MainVBox/ContentRow/CenterPanel/CenterVBox/CharacterWorkspace/CharacterButtonsRow" unique_id=1273543968]
 unique_name_in_owner = true
 layout_mode = 2
-text = "清空技能装备"
+text = "UI_CLEAR_SKILL_EQUIPMENT"
 
 [node name="RightPanel" type="PanelContainer" parent="MainMargin/MainVBox/ContentRow" unique_id=10815939]
 unique_name_in_owner = true
@@ -264,7 +264,7 @@ theme_override_constants/separation = 12
 [node name="PreviewHeader" type="Label" parent="MainMargin/MainVBox/ContentRow/RightPanel/RightVBox" unique_id=1504451646]
 layout_mode = 2
 theme_override_font_sizes/font_size = 21
-text = "实时预览"
+text = "UI_REALTIME_PREVIEW"
 
 [node name="RightScroll" type="ScrollContainer" parent="MainMargin/MainVBox/ContentRow/RightPanel/RightVBox" unique_id=1857838531]
 layout_mode = 2
@@ -281,7 +281,7 @@ theme_override_constants/separation = 12
 unique_name_in_owner = true
 layout_mode = 2
 theme_override_font_sizes/font_size = 22
-text = "预览"
+text = "UI_PREVIEW"
 
 [node name="PreviewBodyLabel" type="RichTextLabel" parent="MainMargin/MainVBox/ContentRow/RightPanel/RightVBox/RightScroll/RightContent" unique_id=2034028020]
 unique_name_in_owner = true
@@ -311,7 +311,7 @@ theme_override_constants/separation = 12
 [node name="BottomHeader" type="Label" parent="MainMargin/MainVBox/BottomPanel/BottomVBox" unique_id=746911413]
 layout_mode = 2
 theme_override_font_sizes/font_size = 21
-text = "操作与反馈"
+text = "UI_ACTIONS_AND_FEEDBACK"
 
 [node name="BottomActions" type="HBoxContainer" parent="MainMargin/MainVBox/BottomPanel/BottomVBox" unique_id=972760545]
 layout_mode = 2
@@ -320,28 +320,28 @@ theme_override_constants/separation = 10
 [node name="SimulateButton" type="Button" parent="MainMargin/MainVBox/BottomPanel/BottomVBox/BottomActions" unique_id=253845801]
 unique_name_in_owner = true
 layout_mode = 2
-text = "模拟释放"
+text = "UI_SIMULATE_RELEASE"
 
 [node name="BattlePrepareButton" type="Button" parent="MainMargin/MainVBox/BottomPanel/BottomVBox/BottomActions" unique_id=2126415027]
 unique_name_in_owner = true
 visible = false
 layout_mode = 2
-text = "准备战斗"
+text = "UI_PREPARE_BATTLE"
 
 [node name="ReturnMapButton" type="Button" parent="MainMargin/MainVBox/BottomPanel/BottomVBox/BottomActions" unique_id=1341510554]
 unique_name_in_owner = true
 layout_mode = 2
-text = "返回地图"
+text = "UI_RETURN_TO_MAP"
 
 [node name="NextButton" type="Button" parent="MainMargin/MainVBox/BottomPanel/BottomVBox/BottomActions" unique_id=1976238962]
 unique_name_in_owner = true
 layout_mode = 2
-text = "下一项"
+text = "UI_NEXT_ITEM"
 
 [node name="StatusLabel" type="Label" parent="MainMargin/MainVBox/BottomPanel/BottomVBox" unique_id=1892007715]
 unique_name_in_owner = true
 layout_mode = 2
-text = "等待操作"
+text = "UI_WAITING_FOR_ACTION"
 autowrap_mode = 3
 
 [node name="CursorPreview" type="Control" parent="." unique_id=1875282542]

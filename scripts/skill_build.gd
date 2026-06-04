@@ -3,6 +3,7 @@ extends Control
 const BOARD_COLUMNS := 4
 const BOARD_ROWS := 4
 const DATA_PATH := "res://data/demo_data.json"
+const TEXT_DATABASE_SCRIPT := preload("res://scripts/database/text_database.gd")
 
 # cards/modules/characters 保存从 JSON 读取的静态定义。
 # card_states/character_states 保存玩家在场景中编辑后的运行时状态。
@@ -31,6 +32,7 @@ var cursor_preview_cells: Array = []
 var primary_buttons: Array = []
 var secondary_buttons: Dictionary = {}
 var board_buttons: Dictionary = {}
+var fallback_text_database: Node
 
 @onready var title_label: Label = %TitleLabel
 @onready var subtitle_label: Label = %SubtitleLabel
@@ -90,13 +92,14 @@ func _ready() -> void:
 	set_process(true)
 	_initialize_states()
 	_style_static_scene()
+	_apply_static_texts()
 	_bind_static_actions()
 	_build_dynamic_controls()
 	if BattleRuntime.has_builder_snapshot:
 		_import_runtime_builder_state()
 	else:
 		_load_default_builds()
-	_refresh_ui("流程：技能卡页调整模组 → 角色页装备技能 → 点击【进入地图】。")
+	_refresh_ui(_text("BUILD_STATUS_FLOW"))
 
 
 ## 读取 JSON 数据文件，并把原始数据转换成脚本内更方便使用的结构。
@@ -104,12 +107,12 @@ func _load_data() -> void:
 	# Demo 数据完全外置，这样调数值和改内容时不需要直接改脚本。
 	var file := FileAccess.open(DATA_PATH, FileAccess.READ)
 	if file == null:
-		push_error("无法打开数据文件：%s" % DATA_PATH)
+		push_error(_format_text("ERROR_OPEN_DATA_FILE", {"path": DATA_PATH}))
 		return
 
 	var parsed = JSON.parse_string(file.get_as_text())
 	if typeof(parsed) != TYPE_DICTIONARY:
-		push_error("数据文件格式不正确：%s" % DATA_PATH)
+		push_error(_format_text("ERROR_DATA_FILE_FORMAT", {"path": DATA_PATH}))
 		return
 
 	var raw: Dictionary = parsed
@@ -124,10 +127,16 @@ func _load_data() -> void:
 	# 读取技能卡定义，并把可用格子/特殊格坐标转换成 Vector2i。
 	for card_data in raw.get("cards", []):
 		var card: Dictionary = card_data.duplicate(true)
+		_resolve_text_fields(card, {
+			"name_key": "name",
+			"target_key": "target_type",
+			"target_summary_key": "target_summary"
+		})
 		card["active_cells"] = _coords(card.get("active_cells", []))
 		var special_slots: Array = []
 		for slot_data in card.get("special_slots", []):
 			var slot: Dictionary = slot_data.duplicate(true)
+			_resolve_text_fields(slot, {"label_key": "label"})
 			slot["pos"] = _pair_to_vector(slot["pos"])
 			special_slots.append(slot)
 		card["special_slots"] = special_slots
@@ -138,6 +147,12 @@ func _load_data() -> void:
 	# 读取模组定义，并把形状和尺寸转换成便于计算的结构。
 	for module_data in raw.get("modules", []):
 		var module: Dictionary = module_data.duplicate(true)
+		_resolve_text_fields(module, {
+			"name_key": "name",
+			"short_key": "short",
+			"desc_key": "description"
+		})
+		_resolve_text_array_field(module, "tag_keys", "tags")
 		module["shape"] = _coords(module.get("shape", []))
 		module["size"] = _pair_to_vector(module["size"])
 		module["effects"] = module.get("effects", {}).duplicate(true)
@@ -147,6 +162,11 @@ func _load_data() -> void:
 	# 读取角色定义。
 	for character_data in raw.get("characters", []):
 		var character: Dictionary = character_data.duplicate(true)
+		_resolve_text_fields(character, {
+			"name_key": "name",
+			"profession_name_key": "profession_name",
+			"role_key": "role"
+		})
 		character["allowed_card_slots"] = int(character.get("allowed_card_slots", 1))
 		characters.append(character)
 		character_order.append(character["id"])
@@ -246,6 +266,42 @@ func _style_static_scene() -> void:
 	equipped_cards_label.scroll_active = false
 
 
+func _apply_static_texts() -> void:
+	title_label.text = _text("UI_SKILL_BUILD_TITLE")
+	subtitle_label.text = _text("UI_SKILL_BUILD_SUBTITLE")
+	card_view_button.text = _text("UI_SKILL_CARD_TAB")
+	character_view_button.text = _text("UI_CHARACTER_TAB")
+	top_battle_prepare_button.text = _text("UI_ENTER_MAP")
+	left_header_label.text = _text("UI_SKILL_AND_MODULES")
+	left_hint_label.text = _text("UI_HINT")
+	secondary_section_label.text = _text("UI_SECONDARY_LIST")
+	selection_label.text = _text("UI_CURRENT_SELECTION")
+	workspace_title_label.text = _text("UI_WORKSPACE")
+	board_title_label.text = _text("UI_SKILL_CARD_INFO")
+	board_hint_label.text = _text("UI_BOARD_HINT")
+	rotate_button.text = _text("UI_ROTATE_SELECTED_MODULE")
+	clear_button.text = _text("UI_CLEAR_CURRENT_SKILL_CARD")
+	defaults_button.text = _text("UI_RESTORE_RECOMMENDED_BUILD")
+	character_name_label.text = _text("UI_CHARACTER_NAME_PLACEHOLDER")
+	character_profession_label.text = _text("UI_PROFESSION_PLACEHOLDER")
+	equip_hint_label.text = _text("UI_EQUIP_HINT")
+	equip_selected_button.text = _text("UI_EQUIP_SELECTED_SKILL_CARD")
+	unequip_all_button.text = _text("UI_CLEAR_SKILL_EQUIPMENT")
+	var preview_header := get_node_or_null("MainMargin/MainVBox/ContentRow/RightPanel/RightVBox/PreviewHeader")
+	if preview_header is Label:
+		preview_header.text = _text("UI_REALTIME_PREVIEW")
+	preview_title_label.text = _text("UI_PREVIEW")
+	preview_body_label.text = _text("UI_PREVIEW")
+	var bottom_header := get_node_or_null("MainMargin/MainVBox/BottomPanel/BottomVBox/BottomHeader")
+	if bottom_header is Label:
+		bottom_header.text = _text("UI_ACTIONS_AND_FEEDBACK")
+	simulate_button.text = _text("UI_SIMULATE_RELEASE")
+	battle_prepare_button.text = _text("UI_PREPARE_BATTLE")
+	return_map_button.text = _text("UI_RETURN_TO_MAP")
+	next_button.text = _text("UI_NEXT_ITEM")
+	status_label.text = _text("UI_WAITING_FOR_ACTION")
+
+
 ## 绑定场景里固定按钮的点击事件。
 func _bind_static_actions() -> void:
 	card_view_button.pressed.connect(_switch_to_card_view)
@@ -312,7 +368,7 @@ func _switch_to_card_view() -> void:
 	selected_module_id = ""
 	selected_rotation = 0
 	preview_message = ""
-	_refresh_ui("已切换到技能卡构筑界面。")
+	_refresh_ui(_text("BUILD_STATUS_CARD_VIEW"))
 
 
 ## 切换到角色装备页面。
@@ -321,7 +377,7 @@ func _switch_to_character_view() -> void:
 	selected_module_id = ""
 	selected_rotation = 0
 	preview_message = ""
-	_refresh_ui("已切换到角色界面。只能装备职业允许使用的技能卡。")
+	_refresh_ui(_text("BUILD_STATUS_CHARACTER_VIEW"))
 
 
 ## 创建统一的面板样式，供左中右和底部面板复用。
@@ -452,7 +508,7 @@ func _restore_defaults() -> void:
 	selected_rotation = 0
 	preview_message = ""
 	_load_default_builds()
-	_refresh_ui("已恢复为数据文件中的推荐技能卡构筑。")
+	_refresh_ui(_text("BUILD_STATUS_RESTORE_DEFAULTS"))
 
 
 ## 左侧主列表点击事件：技能卡页选卡，角色页选角色。
@@ -463,32 +519,35 @@ func _on_primary_item_pressed(index: int) -> void:
 		selected_card_index = index
 		selected_module_id = ""
 		selected_rotation = 0
-		_refresh_ui("已切换到技能卡：%s。" % cards[card_order[index]]["name"])
+		_refresh_ui(_format_text("BUILD_STATUS_SWITCH_CARD", {"name": cards[card_order[index]]["name"]}))
 	else:
 		selected_character_index = index
-		_refresh_ui("已切换到角色：%s。" % characters[index]["name"])
+		_refresh_ui(_format_text("BUILD_STATUS_SWITCH_CHARACTER", {"name": characters[index]["name"]}))
 
 
 ## 左侧模组列表点击事件，只记录当前选中的模组。
 func _on_module_selected(module_id: String) -> void:
 	selected_module_id = module_id
 	selected_rotation = 0
-	_refresh_ui("已选中模组：%s。" % modules[module_id]["name"])
+	_refresh_ui(_format_text("BUILD_STATUS_SELECT_MODULE", {"name": modules[module_id]["name"]}))
 
 
 ## 角色页右侧技能卡列表点击事件，用于切换当前选中的技能卡。
 func _on_card_option_selected(card_id: String) -> void:
 	selected_card_index = card_index_by_id[card_id]
-	_refresh_ui("已选中技能卡：%s。" % cards[card_id]["name"])
+	_refresh_ui(_format_text("BUILD_STATUS_SELECT_CARD", {"name": cards[card_id]["name"]}))
 
 
 ## 旋转当前选中的模组。
 func _rotate_selected_module() -> void:
 	if selected_module_id.is_empty():
-		_refresh_ui("请先选择一个模组。")
+		_refresh_ui(_text("BUILD_STATUS_SELECT_MODULE_FIRST"))
 		return
 	selected_rotation = (selected_rotation + 1) % 4
-	_refresh_ui("已将 %s 旋转到 %d°。" % [modules[selected_module_id]["name"], selected_rotation * 90])
+	_refresh_ui(_format_text("BUILD_STATUS_ROTATE_MODULE", {
+		"name": modules[selected_module_id]["name"],
+		"rotation": selected_rotation * 90
+	}))
 
 
 ## 棋盘格左键点击事件，尝试把当前模组放进技能卡。
@@ -509,12 +568,12 @@ func _on_board_cell_input(event: InputEvent, coord: Vector2i) -> void:
 	if event is InputEventMouseButton and event.pressed and event.button_index == MOUSE_BUTTON_RIGHT:
 		var placement_index := _find_placement_covering(selected_card_index, coord)
 		if placement_index == -1:
-			_refresh_ui("这个格子上没有模组。")
+			_refresh_ui(_text("BUILD_STATUS_EMPTY_CELL"))
 			return
 		var placement: Dictionary = card_states[selected_card_index]["placements"][placement_index]
 		card_states[selected_card_index]["placements"].remove_at(placement_index)
 		preview_message = ""
-		_refresh_ui("已移除 %s。" % modules[placement["module_id"]]["name"])
+		_refresh_ui(_format_text("BUILD_STATUS_REMOVE_MODULE", {"name": modules[placement["module_id"]]["name"]}))
 
 
 ## 清空当前技能卡上的所有模组。
@@ -525,7 +584,7 @@ func _clear_current_skill() -> void:
 	selected_module_id = ""
 	selected_rotation = 0
 	preview_message = ""
-	_refresh_ui("当前技能卡已清空。")
+	_refresh_ui(_text("BUILD_STATUS_CLEAR_CARD"))
 
 
 ## 在角色页为当前角色装备或卸下当前选中的技能卡。
@@ -539,23 +598,23 @@ func _toggle_equip_selected_card() -> void:
 
 	# 装备动作在执行时一定会再次校验职业兼容性，避免只靠界面层限制。
 	if not _card_allowed_for_profession(card, character["profession"]):
-		_refresh_ui("%s 无法使用技能卡 %s。" % [character["name"], card["name"]])
+		_refresh_ui(_format_text("BUILD_STATUS_CARD_NOT_ALLOWED", {"character": character["name"], "card": card["name"]}))
 		return
 
 	var equipped: Array = state["equipped_card_ids"]
 	# 如果已经装备了这张卡，再点一次就执行卸下逻辑。
 	if equipped.has(card_id):
 		equipped.erase(card_id)
-		_refresh_ui("已从 %s 身上卸下 %s。" % [character["name"], card["name"]])
+		_refresh_ui(_format_text("BUILD_STATUS_UNEQUIP_CARD", {"character": character["name"], "card": card["name"]}))
 		return
 
 	# 如果技能槽满了，就不能继续装备。
 	if equipped.size() >= int(character["allowed_card_slots"]):
-		_refresh_ui("%s 的技能槽已满，请先卸下一张技能卡。" % character["name"])
+		_refresh_ui(_format_text("BUILD_STATUS_SLOT_FULL", {"character": character["name"]}))
 		return
 
 	equipped.append(card_id)
-	_refresh_ui("已为 %s 装备技能卡 %s。" % [character["name"], card["name"]])
+	_refresh_ui(_format_text("BUILD_STATUS_EQUIP_CARD", {"character": character["name"], "card": card["name"]}))
 
 
 ## 清空当前角色装备的所有技能卡。
@@ -563,21 +622,21 @@ func _unequip_all_cards() -> void:
 	if current_view != "character":
 		return
 	character_states[selected_character_index]["equipped_card_ids"].clear()
-	_refresh_ui("已清空当前角色的技能装备。")
+	_refresh_ui(_text("BUILD_STATUS_CLEAR_EQUIPMENT"))
 
 
 ## 模拟释放当前技能卡，当前版本只提供文本反馈。
 func _simulate_release() -> void:
 	var generated := _generate_skill_for_card(selected_card_index)
 	if generated["occupied_cells"] == 0:
-		preview_message = "[color=#f1c27d]当前技能卡还是空的，先装入一些模组吧。[/color]"
+		preview_message = "[color=#f1c27d]%s[/color]" % _text("BUILD_PREVIEW_EMPTY_CARD_WARNING")
 		_refresh_ui("")
 		return
 
 	var lines := PackedStringArray()
-	lines.append("[b]模拟释放：%s[/b]" % generated["name"])
-	lines.append("目标：%s" % generated["target"])
-	lines.append("当前构筑强度已记录到右侧预览。")
+	lines.append(_format_text("BUILD_SIMULATION_TITLE", {"name": generated["name"]}))
+	lines.append(_format_text("BUILD_SIMULATION_TARGET", {"target": generated["target"]}))
+	lines.append(_text("BUILD_SIMULATION_RECORDED"))
 	preview_message = "[color=#a6e3a1]%s[/color]" % "\n".join(lines)
 	_refresh_ui("")
 
@@ -586,10 +645,10 @@ func _simulate_release() -> void:
 func _handle_next_button() -> void:
 	if current_view == "card":
 		selected_card_index = (selected_card_index + 1) % card_order.size()
-		_refresh_ui("已切换到下一张技能卡。")
+		_refresh_ui(_text("BUILD_STATUS_NEXT_CARD"))
 	else:
 		selected_character_index = (selected_character_index + 1) % characters.size()
-		_refresh_ui("已切换到下一名角色。")
+		_refresh_ui(_text("BUILD_STATUS_NEXT_CHARACTER"))
 
 
 ## 进入 V1 战斗验证前，把当前构筑结果和角色装备状态交给战斗运行时单例。
@@ -653,7 +712,7 @@ func _try_place_module(card_index: int, module_id: String, anchor: Vector2i, rot
 	card_states[card_index]["placements"].append(placement)
 
 	if show_feedback:
-		_refresh_ui("已放置 %s。" % modules[module_id]["name"])
+		_refresh_ui(_format_text("BUILD_STATUS_PLACE_MODULE", {"name": modules[module_id]["name"]}))
 	return true
 
 
@@ -663,16 +722,16 @@ func _validate_placement(card_index: int, module_id: String, anchor: Vector2i, r
 	# 也会影响后续接入战斗时的数据正确性。
 	var module: Dictionary = modules[module_id]
 	if _get_available_module_count(module_id) <= 0:
-		return {"ok": false, "message": "库存里已经没有可用的 %s 了。" % module["name"]}
+		return {"ok": false, "message": _format_text("BUILD_VALIDATION_NO_AVAILABLE_MODULE", {"name": module["name"]})}
 
 	var state: Dictionary = card_states[card_index]
 	var card: Dictionary = cards[state["card_id"]]
 	if not _module_allowed_for_card(module, card):
-		return {"ok": false, "message": "%s 不适合装入这张技能卡。" % module["name"]}
+		return {"ok": false, "message": _format_text("BUILD_VALIDATION_MODULE_INCOMPATIBLE", {"name": module["name"]})}
 	if module.get("is_unique", false):
 		for placement in state["placements"]:
 			if modules[placement["module_id"]].get("is_unique", false):
-				return {"ok": false, "message": "每张技能卡最多只能装 1 个独行模组。"}
+				return {"ok": false, "message": _text("BUILD_VALIDATION_ONE_SOLO_LIMIT")}
 
 	var rotated_cells: Array = _get_rotated_shape(module["shape"], module["size"], rotation)
 	var occupied: Dictionary = _get_occupied_map(card_index)
@@ -682,11 +741,11 @@ func _validate_placement(card_index: int, module_id: String, anchor: Vector2i, r
 	for cell in rotated_cells:
 		var absolute: Vector2i = anchor + cell
 		if absolute.x < 0 or absolute.y < 0 or absolute.x >= card["width"] or absolute.y >= card["height"]:
-			return {"ok": false, "message": "模组超出了技能卡边界。"}
+			return {"ok": false, "message": _text("BUILD_VALIDATION_OUT_OF_BOUNDS")}
 		if not active_map.has(_coord_key(absolute)):
-			return {"ok": false, "message": "这个位置不是技能卡可用格子。"}
+			return {"ok": false, "message": _text("BUILD_VALIDATION_INACTIVE_CELL")}
 		if occupied.has(_coord_key(absolute)):
-			return {"ok": false, "message": "模组不能和已放置内容重叠。"}
+			return {"ok": false, "message": _text("BUILD_VALIDATION_OVERLAP")}
 		absolute_cells.append(absolute)
 
 	return {"ok": true, "cells": absolute_cells}
@@ -718,24 +777,24 @@ func _update_left_panel() -> void:
 	_rebuild_secondary_list()
 
 	if current_view == "card":
-		left_header_label.text = "技能卡与模组"
-		left_hint_label.text = "先选技能卡，再选择模组进行装配。"
-		secondary_section_label.text = "模组库存  可用总数 %d" % _get_total_available_modules()
-		selection_label.text = "当前技能卡：%s\n当前模组：%s\n旋转：%d°" % [
-			cards[card_order[selected_card_index]]["name"],
-			"未选择" if selected_module_id.is_empty() else modules[selected_module_id]["name"],
-			selected_rotation * 90
-		]
+		left_header_label.text = _text("UI_SKILL_AND_MODULES")
+		left_hint_label.text = _text("BUILD_LEFT_CARD_HINT")
+		secondary_section_label.text = _format_text("BUILD_MODULE_INVENTORY_COUNT", {"count": _get_total_available_modules()})
+		selection_label.text = _format_text("BUILD_CARD_SELECTION", {
+			"card": cards[card_order[selected_card_index]]["name"],
+			"module": _text("UI_UNSELECTED") if selected_module_id.is_empty() else modules[selected_module_id]["name"],
+			"rotation": selected_rotation * 90
+		})
 	else:
 		var character: Dictionary = characters[selected_character_index]
-		left_header_label.text = "角色与技能装备"
-		left_hint_label.text = "选择角色后，只能装备职业允许使用的技能卡。"
-		secondary_section_label.text = "可装备技能卡"
-		selection_label.text = "当前角色：%s\n职业：%s\n选中技能卡：%s" % [
-			character["name"],
-			character["profession_name"],
-			cards[card_order[selected_card_index]]["name"]
-		]
+		left_header_label.text = _text("BUILD_LEFT_CHARACTER_TITLE")
+		left_hint_label.text = _text("BUILD_LEFT_CHARACTER_HINT")
+		secondary_section_label.text = _text("BUILD_EQUIPPABLE_CARDS")
+		selection_label.text = _format_text("BUILD_CHARACTER_SELECTION", {
+			"character": character["name"],
+			"profession": character["profession_name"],
+			"card": cards[card_order[selected_card_index]]["name"]
+		})
 
 
 ## 重新构建左侧主列表。
@@ -756,14 +815,14 @@ func _rebuild_primary_list() -> void:
 			button.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 			button.custom_minimum_size = Vector2(0, 84)
 			_style_button(button, "primary" if index == selected_card_index else "soft")
-			button.text = "%s%s [%s]\n职业限制：%s | 能量 %d | 已用 %d 格" % [
-				"● " if index == selected_card_index else "",
-				card["name"],
-				_card_type_label(card),
-				"/".join(card["allowed_professions"]),
-				generated["energy_cost"],
-				generated["occupied_cells"]
-			]
+			button.text = _format_text("BUILD_CARD_LIST_ITEM", {
+				"marker": "● " if index == selected_card_index else "",
+				"name": card["name"],
+				"type": _card_type_label(card),
+				"professions": "/".join(card["allowed_professions"]),
+				"energy": generated["energy_cost"],
+				"cells": generated["occupied_cells"]
+			})
 			button.pressed.connect(_on_primary_item_pressed.bind(index))
 			primary_list.add_child(button)
 			primary_buttons.append(button)
@@ -777,14 +836,14 @@ func _rebuild_primary_list() -> void:
 			button.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 			button.custom_minimum_size = Vector2(0, 90)
 			_style_button(button, "primary" if index == selected_character_index else "soft")
-			button.text = "%s%s [%s]\n%s | 已装备 %d/%d 张技能卡" % [
-				"● " if index == selected_character_index else "",
-				character["name"],
-				character["profession_name"],
-				character["role"],
-				equipped.size(),
-				character["allowed_card_slots"]
-			]
+			button.text = _format_text("BUILD_CHARACTER_LIST_ITEM", {
+				"marker": "● " if index == selected_character_index else "",
+				"name": character["name"],
+				"profession": character["profession_name"],
+				"role": character["role"],
+				"equipped": equipped.size(),
+				"slots": character["allowed_card_slots"]
+			})
 			button.pressed.connect(_on_primary_item_pressed.bind(index))
 			primary_list.add_child(button)
 			primary_buttons.append(button)
@@ -811,16 +870,16 @@ func _rebuild_secondary_list() -> void:
 			button.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 			button.custom_minimum_size = Vector2(0, 108)
 			_style_button(button, "primary" if selected_module_id == module_id else "module")
-			button.text = "%s%s x%d%s\nTag：%s\n可用于：%s\n%s | %s" % [
-				"▶ " if selected_module_id == module_id else "",
-				module["name"],
-				available,
-				"" if compatible else " | 不适配",
-				_module_tag_text(module),
-				_module_allowed_type_label(module),
-				_shape_to_text(module["shape"], module["size"]),
-				module["description"]
-			]
+			button.text = _format_text("BUILD_MODULE_LIST_ITEM", {
+				"marker": "▶ " if selected_module_id == module_id else "",
+				"name": module["name"],
+				"count": available,
+				"compatible": "" if compatible else _text("BUILD_INCOMPATIBLE_SUFFIX"),
+				"tags": _module_tag_text(module),
+				"allowed_types": _module_allowed_type_label(module),
+				"shape": _shape_to_text(module["shape"], module["size"]),
+				"description": module["description"]
+			})
 			button.disabled = (available <= 0 and selected_module_id != module_id) or not compatible
 			button.pressed.connect(_on_module_selected.bind(module_id))
 			secondary_list.add_child(button)
@@ -839,14 +898,14 @@ func _rebuild_secondary_list() -> void:
 			button.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 			button.custom_minimum_size = Vector2(0, 90)
 			_style_button(button, "primary" if card_order[selected_card_index] == card_id else "soft")
-			button.text = "%s%s [%s]\n%s | %s | 能量 %d" % [
-				"已装备 " if equipped_ids.has(card_id) else "",
-				card["name"],
-				_card_type_label(card),
-				"允许" if allowed else "不可用",
-				card["target_type"],
-				generated["energy_cost"]
-			]
+			button.text = _format_text("BUILD_CARD_OPTION_ITEM", {
+				"marker": _text("BUILD_EQUIPPED_PREFIX") if equipped_ids.has(card_id) else "",
+				"name": card["name"],
+				"type": _card_type_label(card),
+				"target": card["target_type"],
+				"allowed": _text("BUILD_ALLOWED") if allowed else _text("BUILD_UNAVAILABLE"),
+				"energy": generated["energy_cost"]
+			})
 			button.disabled = not allowed
 			button.pressed.connect(_on_card_option_selected.bind(card_id))
 			secondary_list.add_child(button)
@@ -865,13 +924,13 @@ func _update_workspace() -> void:
 	equip_selected_button.disabled = show_card
 	unequip_all_button.disabled = show_card
 	return_map_button.visible = bool(BattleRuntime.exploration_state.get("is_exploration_active", false))
-	next_button.text = "下一张技能卡" if show_card else "下一名角色"
+	next_button.text = _text("BUILD_NEXT_SKILL_CARD") if show_card else _text("BUILD_NEXT_CHARACTER")
 
 	if show_card:
-		workspace_title_label.text = "技能卡装配"
+		workspace_title_label.text = _text("BUILD_WORKSPACE_CARD")
 		_update_card_workspace()
 	else:
-		workspace_title_label.text = "角色装备"
+		workspace_title_label.text = _text("BUILD_WORKSPACE_CHARACTER")
 		_update_character_workspace()
 
 
@@ -879,8 +938,15 @@ func _update_workspace() -> void:
 func _update_card_workspace() -> void:
 	var card_id: String = card_order[selected_card_index]
 	var card: Dictionary = cards[card_id]
-	board_title_label.text = "%s [%s] | 职业限制：%s" % [card["name"], _card_type_label(card), "/".join(card["allowed_professions"])]
-	board_hint_label.text = "作用对象：%s\n%s\n操作：先选模组，再点击棋盘格子放置；右键移除；按 R 可顺时针旋转。" % [card["target_type"], _energy_rule_text(card["energy_curve"])]
+	board_title_label.text = _format_text("BUILD_BOARD_TITLE", {
+		"name": card["name"],
+		"type": _card_type_label(card),
+		"professions": "/".join(card["allowed_professions"])
+	})
+	board_hint_label.text = _format_text("BUILD_BOARD_HINT", {
+		"target": card["target_type"],
+		"energy_rule": _energy_rule_text(card["energy_curve"])
+	})
 	_update_board()
 
 
@@ -894,31 +960,31 @@ func _update_character_workspace() -> void:
 	var can_equip := _card_allowed_for_profession(selected_card, character["profession"])
 	var equipped_lines := PackedStringArray()
 	if state["equipped_card_ids"].is_empty():
-		equipped_lines.append("尚未装备技能卡。")
+		equipped_lines.append(_text("BUILD_NO_EQUIPPED_SKILL_CARD"))
 	else:
 		# 已装备技能列表会显示每张卡的作用对象和能量消耗，方便后续接战斗。
 		for card_id in state["equipped_card_ids"]:
 			var generated: Dictionary = _generate_skill_for_card(card_index_by_id[card_id])
-			equipped_lines.append("%s | %s | 能量 %d" % [
-				cards[card_id]["name"],
-				cards[card_id]["target_type"],
-				generated["energy_cost"]
-			])
+			equipped_lines.append(_format_text("BUILD_EQUIPPED_CARD_LINE", {
+				"name": cards[card_id]["name"],
+				"target": cards[card_id]["target_type"],
+				"energy": generated["energy_cost"]
+			}))
 
 	character_name_label.text = character["name"]
 	character_profession_label.text = "%s | %s" % [character["profession_name"], character["role"]]
-	character_stats_label.text = "[b]角色属性[/b]\n力量 %d\n生命 %d\n意志 %d\n速度 %d" % [
-		character["stats"]["strength"],
-		character["stats"]["hp"],
-		character["stats"]["will"],
-		character["stats"]["speed"]
-	]
-	equipped_cards_label.text = "[b]已装备技能[/b]\n%s" % "\n".join(equipped_lines)
-	equip_hint_label.text = "当前选中技能卡：%s\n职业匹配：%s" % [
-		selected_card["name"],
-		"可装备" if can_equip else "该职业不可使用"
-	]
-	equip_selected_button.text = "卸下选中技能卡" if state["equipped_card_ids"].has(selected_card["id"]) else "装备选中技能卡"
+	character_stats_label.text = _format_text("BUILD_CHARACTER_STATS", {
+		"strength": character["stats"]["strength"],
+		"hp": character["stats"]["hp"],
+		"will": character["stats"]["will"],
+		"speed": character["stats"]["speed"]
+	})
+	equipped_cards_label.text = _format_text("BUILD_EQUIPPED_SKILLS", {"skills": "\n".join(equipped_lines)})
+	equip_hint_label.text = _format_text("BUILD_EQUIP_HINT", {
+		"card": selected_card["name"],
+		"match": _text("BUILD_CAN_EQUIP") if can_equip else _text("BUILD_CANNOT_USE")
+	})
+	equip_selected_button.text = _text("BUILD_UNEQUIP_SELECTED_CARD") if state["equipped_card_ids"].has(selected_card["id"]) else _text("UI_EQUIP_SELECTED_SKILL_CARD")
 	equip_selected_button.disabled = not can_equip
 
 
@@ -971,7 +1037,7 @@ func _update_board() -> void:
 					button.tooltip_text = special_map[key]["label"]
 				else:
 					_apply_board_cell_style(button, Color("283241"), Color("37465a"), Color("91a0b5"))
-					button.tooltip_text = "可放置格子"
+					button.tooltip_text = _text("BUILD_PLACEABLE_CELL")
 
 
 ## 更新右侧预览区，始终围绕当前选中的技能卡展示结果。
@@ -981,23 +1047,23 @@ func _update_preview() -> void:
 	var card: Dictionary = cards[card_id]
 	var generated: Dictionary = _generate_skill_for_card(selected_card_index)
 
-	preview_title_label.text = "%s 预览" % card["name"]
+	preview_title_label.text = _format_text("BUILD_PREVIEW_TITLE", {"name": card["name"]})
 
 	var lines := PackedStringArray()
-	lines.append("[b]职业限制[/b]")
+	lines.append(_text("BUILD_PREVIEW_PROFESSION_LIMIT"))
 	lines.append("/".join(card["allowed_professions"]))
-	lines.append("[b]技能类型[/b]")
+	lines.append(_text("BUILD_PREVIEW_SKILL_TYPE"))
 	lines.append(_card_type_label(card))
 	lines.append("")
-	lines.append("[b]目标与消耗[/b]")
-	lines.append("作用对象：%s" % card["target_type"])
-	lines.append("当前能量：%d" % generated["energy_cost"])
-	lines.append("占用格数：%d" % generated["occupied_cells"])
+	lines.append(_text("BUILD_PREVIEW_TARGET_AND_COST"))
+	lines.append(_format_text("BUILD_PREVIEW_TARGET", {"target": card["target_type"]}))
+	lines.append(_format_text("BUILD_PREVIEW_ENERGY", {"energy": generated["energy_cost"]}))
+	lines.append(_format_text("BUILD_PREVIEW_OCCUPIED_CELLS", {"cells": generated["occupied_cells"]}))
 	lines.append(_energy_rule_text(card["energy_curve"]))
 	lines.append("")
-	lines.append("[b]技能效果[/b]")
+	lines.append(_text("BUILD_PREVIEW_SKILL_EFFECT"))
 	if generated["occupied_cells"] == 0:
-		lines.append("尚未装入模组。")
+		lines.append(_text("BUILD_PREVIEW_NO_MODULES"))
 	else:
 		# 这里把生成后的技能结果按类型分项展示出来。
 		var morale_damage_pct := 0.0
@@ -1007,12 +1073,15 @@ func _update_preview() -> void:
 			morale_damage_cost += int(morale_damage.get("cost", 0))
 		var total_damage_pct: float = float(generated["damage_pct"]) + morale_damage_pct
 		if total_damage_pct > 0.0:
-			var damage_text := "伤害：%.0f%% 力量" % total_damage_pct
+			var damage_text := _format_text("BUILD_PREVIEW_DAMAGE", {"value": "%.0f" % total_damage_pct})
 			if morale_damage_pct > 0.0:
-				damage_text += "（含耗 %d 士气的 %.0f%%）" % [morale_damage_cost, morale_damage_pct]
+				damage_text += _format_text("BUILD_PREVIEW_MORALE_APPEND", {
+					"cost": morale_damage_cost,
+					"value": "%.0f" % morale_damage_pct
+				})
 			lines.append(damage_text)
 		if generated["heal_pct"] > 0.0:
-			lines.append("治疗：%.0f%% 意志" % generated["heal_pct"])
+			lines.append(_format_text("BUILD_PREVIEW_HEAL", {"value": "%.0f" % generated["heal_pct"]}))
 		var morale_shield_pct := 0.0
 		var morale_shield_cost := 0
 		for morale_shield in generated.get("morale_shield_modules", []):
@@ -1020,43 +1089,59 @@ func _update_preview() -> void:
 			morale_shield_cost += int(morale_shield.get("cost", 0))
 		var total_shield_pct: float = float(generated["shield_pct"]) + morale_shield_pct
 		if total_shield_pct > 0.0:
-			var shield_text := "护盾：%.0f%% 意志" % total_shield_pct
+			var shield_text := _format_text("BUILD_PREVIEW_SHIELD", {"value": "%.0f" % total_shield_pct})
 			if morale_shield_pct > 0.0:
-				shield_text += "（含耗 %d 士气的 %.0f%%）" % [morale_shield_cost, morale_shield_pct]
+				shield_text += _format_text("BUILD_PREVIEW_MORALE_APPEND", {
+					"cost": morale_shield_cost,
+					"value": "%.0f" % morale_shield_pct
+				})
 			lines.append(shield_text)
 		if generated["pierce_pct"] > 0.0:
-			lines.append("穿透：%.0f%%" % generated["pierce_pct"])
+			lines.append(_format_text("BUILD_PREVIEW_PIERCE", {"value": "%.0f" % generated["pierce_pct"]}))
 		if generated["morale_gain"] > 0:
-			lines.append("士气：+%d" % generated["morale_gain"])
+			lines.append(_format_text("BUILD_PREVIEW_MORALE_GAIN", {"value": generated["morale_gain"]}))
 		for status in generated.get("status_modules", []):
 			var status_id := str(status.get("id", ""))
 			if status_id == "burn" and status.has("scale_pct"):
 				var flat_layers: int = int(status.get("flat", 0))
 				var flat_text := ""
 				if flat_layers > 0:
-					flat_text = " + %d 层" % flat_layers
-				lines.append("灼烧：%.0f%% %s%s" % [float(status.get("scale_pct", 0.0)), str(status.get("scale_stat", "strength")), flat_text])
+					flat_text = _format_text("BUILD_PREVIEW_FLAT_LAYER_APPEND", {"layers": flat_layers})
+				lines.append(_format_text("BUILD_PREVIEW_BURN", {
+					"value": "%.0f" % float(status.get("scale_pct", 0.0)),
+					"stat": str(status.get("scale_stat", "strength")),
+					"flat": flat_text
+				}))
 			else:
-				lines.append("%s：%d 层" % [_status_display_name(status_id), int(status.get("layers", 0))])
+				lines.append(_format_text("BUILD_PREVIEW_STATUS_LAYERS", {
+					"status": _status_display_name(status_id),
+					"layers": int(status.get("layers", 0))
+				}))
 		if generated["speed_buff"] > 0:
-			lines.append("加速：+%d 速度，持续 %d 回合" % [generated["speed_buff"], int(generated.get("speed_duration", generated["support_duration"]))])
+			lines.append(_format_text("BUILD_PREVIEW_SPEED", {
+				"speed": generated["speed_buff"],
+				"turns": int(generated.get("speed_duration", generated["support_duration"]))
+			}))
 		if generated["damage_reduction_pct"] > 0:
-			lines.append("稳固：受到伤害 -%d%%，持续 %d 回合" % [generated["damage_reduction_pct"], int(generated.get("damage_reduction_duration", generated["support_duration"]))])
+			lines.append(_format_text("BUILD_PREVIEW_GUARD", {
+				"value": generated["damage_reduction_pct"],
+				"turns": int(generated.get("damage_reduction_duration", generated["support_duration"]))
+			}))
 		if generated["anti_shield_bonus"]:
-			lines.append("额外效果：命中护盾目标时再提高 20% 伤害")
+			lines.append(_text("BUILD_PREVIEW_ANTI_SHIELD"))
 
 	lines.append("")
-	lines.append("[b]特殊格利用[/b]")
+	lines.append(_text("BUILD_PREVIEW_SPECIALS"))
 	if generated["triggered_specials"].is_empty():
-		lines.append("当前没有触发特殊格。")
+		lines.append(_text("BUILD_PREVIEW_NO_SPECIALS"))
 	else:
 		for special_text in generated["triggered_specials"]:
 			lines.append(special_text)
 
 	lines.append("")
-	lines.append("[b]模组摘要[/b]")
+	lines.append(_text("BUILD_PREVIEW_MODULE_SUMMARY"))
 	if generated["module_summaries"].is_empty():
-		lines.append("无")
+		lines.append(_text("BUILD_PREVIEW_NONE"))
 	else:
 		for summary in generated["module_summaries"]:
 			lines.append(summary)
@@ -1065,11 +1150,11 @@ func _update_preview() -> void:
 		var character: Dictionary = characters[selected_character_index]
 		# 角色页会额外给出当前角色和当前技能卡之间的职业匹配结论。
 		lines.append("")
-		lines.append("[b]角色装备检查[/b]")
-		lines.append("%s %s 使用这张技能卡。" % [
-			character["name"],
-			"可以" if _card_allowed_for_profession(card, character["profession"]) else "不可以"
-		])
+		lines.append(_text("BUILD_PREVIEW_EQUIP_CHECK"))
+		lines.append(_format_text("BUILD_PREVIEW_CHARACTER_CAN_USE", {
+			"name": character["name"],
+			"allowed": _text("BUILD_PREVIEW_CAN") if _card_allowed_for_profession(card, character["profession"]) else _text("BUILD_PREVIEW_CANNOT")
+		}))
 
 	preview_body_label.text = "\n".join(lines)
 	simulation_label.text = preview_message
@@ -1170,27 +1255,27 @@ func _generate_skill_for_card(card_index: int) -> Dictionary:
 				"damage_boost":
 					if effects.has("damage_pct"):
 						effects["damage_pct"] *= 1.3
-						module_specials.append("%s 触发：%s" % [module["name"], special["label"]])
+						module_specials.append(_format_text("BUILD_SPECIAL_TRIGGER", {"module": module["name"], "label": special["label"]}))
 				"heal_boost":
 					if effects.has("heal_pct"):
 						effects["heal_pct"] *= 1.25
-						module_specials.append("%s 触发：%s" % [module["name"], special["label"]])
+						module_specials.append(_format_text("BUILD_SPECIAL_TRIGGER", {"module": module["name"], "label": special["label"]}))
 				"shield_boost":
 					if effects.has("shield_pct"):
 						effects["shield_pct"] *= 1.2
-						module_specials.append("%s 触发：%s" % [module["name"], special["label"]])
+						module_specials.append(_format_text("BUILD_SPECIAL_TRIGGER", {"module": module["name"], "label": special["label"]}))
 					if effects.has("morale_shield"):
 						var morale_shield: Dictionary = effects["morale_shield"]
 						morale_shield["shield_pct"] = float(morale_shield.get("shield_pct", 0.0)) * 1.2
-						module_specials.append("%s 触发：%s" % [module["name"], special["label"]])
+						module_specials.append(_format_text("BUILD_SPECIAL_TRIGGER", {"module": module["name"], "label": special["label"]}))
 				"support_duration":
 					if effects.has("speed_buff") or effects.has("damage_reduction_pct"):
 						module_duration_bonus += 1
-						module_specials.append("%s 触发：%s" % [module["name"], special["label"]])
+						module_specials.append(_format_text("BUILD_SPECIAL_TRIGGER", {"module": module["name"], "label": special["label"]}))
 				"anti_shield":
 					if effects.has("damage_pct"):
 						result["anti_shield_bonus"] = true
-						module_specials.append("%s 触发：%s" % [module["name"], special["label"]])
+						module_specials.append(_format_text("BUILD_SPECIAL_TRIGGER", {"module": module["name"], "label": special["label"]}))
 
 		# 把这个模组最终生效的结果累加到技能总结果上。
 		result["damage_pct"] += effects.get("damage_pct", 0.0)
@@ -1237,7 +1322,10 @@ func _generate_skill_for_card(card_index: int) -> Dictionary:
 					"flat": 0,
 					"module_name": module["name"]
 				})
-				result["triggered_specials"].append("%s 读取相邻伤害模组，施加 %.0f%% 力量灼烧" % [module["name"], burn_pct])
+				result["triggered_specials"].append(_format_text("BUILD_BURNING_STRIKE_SPECIAL", {
+					"module": module["name"],
+					"value": "%.0f" % burn_pct
+				}))
 
 	if result["speed_buff"] > 0 or result["damage_reduction_pct"] > 0:
 		result["support_duration"] = max(int(result["speed_duration"]), int(result["damage_reduction_duration"]))
@@ -1269,8 +1357,8 @@ func _energy_cost_for(curve: String, occupied_cells: int) -> int:
 ## 2. range：范围类技能影响面更大，所以同样能量允许的模组格数更少。
 func _energy_rule_text(curve: String) -> String:
 	if curve == "range":
-		return "能量规则：1 能量=1-3 格，2 能量=4-6 格，3 能量=7-9 格"
-	return "能量规则：1 能量=1-5 格，2 能量=6-10 格，3 能量=11-16 格"
+		return _text("BUILD_ENERGY_RULE_RANGE")
+	return _text("BUILD_ENERGY_RULE_SINGLE")
 
 
 ## 统计当前所有技能卡还能使用多少模组。
@@ -1374,7 +1462,7 @@ func _card_type_id(card: Dictionary) -> String:
 
 
 func _card_type_label(card: Dictionary) -> String:
-	return "伤害类" if _card_type_id(card) == "damage" else "辅助类"
+	return _text("BUILD_CARD_TYPE_DAMAGE") if _card_type_id(card) == "damage" else _text("BUILD_CARD_TYPE_SUPPORT")
 
 
 func _module_allowed_type_label(module: Dictionary) -> String:
@@ -1385,18 +1473,18 @@ func _module_allowed_type_label(module: Dictionary) -> String:
 		offensive = offensive or ["vulnerable", "weak", "burn", "cold", "freeze"].has(status_id)
 	var support: bool = effects.has("heal_pct") or effects.has("shield_pct") or effects.has("speed_buff") or effects.has("damage_reduction_pct") or effects.has("morale_gain") or effects.has("morale_shield")
 	if offensive and support:
-		return "伤害类 / 辅助类"
+		return _text("BUILD_MODULE_ALLOWED_BOTH")
 	if offensive:
-		return "伤害类技能"
+		return _text("BUILD_MODULE_ALLOWED_DAMAGE")
 	if support:
-		return "辅助类技能"
-	return "任意技能"
+		return _text("BUILD_MODULE_ALLOWED_SUPPORT")
+	return _text("BUILD_MODULE_ALLOWED_ANY")
 
 
 func _module_tag_text(module: Dictionary) -> String:
 	var tags: Array = module.get("tags", [])
 	if tags.is_empty():
-		return "未标注"
+		return _text("BUILD_MODULE_UNTAGGED")
 	var text_parts := PackedStringArray()
 	for tag in tags:
 		text_parts.append(str(tag))
@@ -1422,15 +1510,15 @@ func _module_color(module: Dictionary) -> Color:
 func _status_display_name(status_id: String) -> String:
 	match status_id:
 		"vulnerable":
-			return "易伤"
+			return _text("STATUS_VULNERABLE")
 		"weak":
-			return "虚弱"
+			return _text("STATUS_WEAK")
 		"burn":
-			return "灼烧"
+			return _text("STATUS_BURN")
 		"cold":
-			return "寒冷"
+			return _text("STATUS_COLD")
 		"freeze":
-			return "冻结"
+			return _text("STATUS_FREEZE")
 	return status_id
 
 
@@ -1459,3 +1547,41 @@ func _coords(source: Array) -> Array:
 ## 把单个坐标数组转成 Vector2i。
 func _pair_to_vector(pair) -> Vector2i:
 	return Vector2i(int(pair[0]), int(pair[1]))
+
+
+func _resolve_text_fields(record: Dictionary, field_map: Dictionary) -> void:
+	for key_field in field_map.keys():
+		var output_field: String = str(field_map[key_field])
+		if record.has(key_field):
+			record[output_field] = _text(str(record[key_field]))
+
+
+func _resolve_text_array_field(record: Dictionary, key_field: String, output_field: String) -> void:
+	if not record.has(key_field):
+		return
+	var values: Array = []
+	for text_key in record[key_field]:
+		values.append(_text(str(text_key)))
+	record[output_field] = values
+
+
+func _text(key: String) -> String:
+	var database := get_node_or_null("/root/TextDatabase")
+	if database != null and database.has_method("get_text"):
+		return str(database.call("get_text", key))
+	if fallback_text_database == null:
+		fallback_text_database = TEXT_DATABASE_SCRIPT.new()
+		fallback_text_database.call("load_texts")
+	if fallback_text_database.has_method("get_text"):
+		return str(fallback_text_database.call("get_text", key))
+	return key
+
+
+func _format_text(key: String, params: Dictionary) -> String:
+	var database := get_node_or_null("/root/TextDatabase")
+	if database != null and database.has_method("format_text"):
+		return str(database.call("format_text", key, params))
+	var text := _text(key)
+	for param_key in params.keys():
+		text = text.replace("{%s}" % str(param_key), str(params[param_key]))
+	return text

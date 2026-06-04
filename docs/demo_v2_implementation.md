@@ -1,6 +1,6 @@
 # Demo V2 实现说明
 
-接入github
+已接入github
 
 
 本文档记录当前 Godot Demo 已经实现的功能、主要规则和维护入口。当前主入口是：

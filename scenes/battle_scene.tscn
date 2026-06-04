@@ -44,13 +44,13 @@ theme_override_constants/separation = 8
 unique_name_in_owner = true
 layout_mode = 2
 theme_override_font_sizes/font_size = 32
-text = "基础战斗场景"
+text = "UI_BATTLE_TITLE"
 
 [node name="SubtitleLabel" type="Label" parent="MainMargin/MainVBox/Header" unique_id=2129138019]
 unique_name_in_owner = true
 layout_mode = 2
 theme_override_font_sizes/font_size = 15
-text = "4v4 最小战斗闭环：速度顺序、普攻、构筑技能、HP / 护盾与胜负判断。"
+text = "UI_BATTLE_SUBTITLE"
 autowrap_mode = 3
 
 [node name="ContentRow" type="HBoxContainer" parent="MainMargin/MainVBox" unique_id=1563188615]
@@ -109,12 +109,12 @@ theme_override_constants/separation = 10
 [node name="NextActionButton" type="Button" parent="MainMargin/MainVBox/LogPanel/BottomVBox/Actions" unique_id=1027742152]
 unique_name_in_owner = true
 layout_mode = 2
-text = "下一行动"
+text = "UI_NEXT_ACTION"
 
 [node name="SandboxButton" type="Button" parent="MainMargin/MainVBox/LogPanel/BottomVBox/Actions" unique_id=1331313928]
 unique_name_in_owner = true
 layout_mode = 2
-text = "返回技能沙盒"
+text = "UI_RETURN_TO_SKILL_SANDBOX"
 
 [node name="LogLabel" type="RichTextLabel" parent="MainMargin/MainVBox/LogPanel/BottomVBox" unique_id=270488466]
 unique_name_in_owner = true

@@ -44,13 +44,13 @@ theme_override_constants/separation = 8
 unique_name_in_owner = true
 layout_mode = 2
 theme_override_font_sizes/font_size = 32
-text = "战斗前确认"
+text = "UI_BATTLE_PREPARE_TITLE"
 
 [node name="SubtitleLabel" type="Label" parent="MainMargin/MainVBox/Header" unique_id=955245250]
 unique_name_in_owner = true
 layout_mode = 2
 theme_override_font_sizes/font_size = 15
-text = "检查角色、技能卡、技能效果和能量消耗；可返回重新装备/调整技能。"
+text = "UI_BATTLE_PREPARE_SUBTITLE"
 autowrap_mode = 3
 
 [node name="MainPanel" type="PanelContainer" parent="MainMargin/MainVBox" unique_id=2144885990]
@@ -86,15 +86,15 @@ theme_override_constants/separation = 10
 [node name="StartButton" type="Button" parent="MainMargin/MainVBox/BottomPanel/BottomVBox/Actions" unique_id=128365470]
 unique_name_in_owner = true
 layout_mode = 2
-text = "进入战斗"
+text = "UI_START_BATTLE"
 
 [node name="BackButton" type="Button" parent="MainMargin/MainVBox/BottomPanel/BottomVBox/Actions" unique_id=996307406]
 unique_name_in_owner = true
 layout_mode = 2
-text = "返回重新装备/调整技能"
+text = "UI_RETURN_TO_EQUIP"
 
 [node name="StatusLabel" type="Label" parent="MainMargin/MainVBox/BottomPanel/BottomVBox" unique_id=374652599]
 unique_name_in_owner = true
 layout_mode = 2
-text = "等待确认"
+text = "UI_WAITING_FOR_CONFIRMATION"
 autowrap_mode = 3
