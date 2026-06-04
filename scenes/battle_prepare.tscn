@@ -1,0 +1,100 @@
+[gd_scene format=3 uid="uid://bttatc5fbi6k"]
+
+[ext_resource type="Script" uid="uid://dpp7ch3yymhd0" path="res://scripts/battle_prepare.gd" id="1_prepare"]
+
+[node name="BattlePrepare" type="Control" unique_id=461781820]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1_prepare")
+
+[node name="Background" type="ColorRect" parent="." unique_id=373146107]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+color = Color(0.0745098, 0.0862745, 0.113725, 1)
+
+[node name="MainMargin" type="MarginContainer" parent="." unique_id=1239331650]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_constants/margin_left = 28
+theme_override_constants/margin_top = 24
+theme_override_constants/margin_right = 28
+theme_override_constants/margin_bottom = 24
+
+[node name="MainVBox" type="VBoxContainer" parent="MainMargin" unique_id=790005606]
+layout_mode = 2
+theme_override_constants/separation = 14
+
+[node name="Header" type="VBoxContainer" parent="MainMargin/MainVBox" unique_id=690173432]
+layout_mode = 2
+theme_override_constants/separation = 8
+
+[node name="TitleLabel" type="Label" parent="MainMargin/MainVBox/Header" unique_id=1525040660]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_font_sizes/font_size = 32
+text = "战斗前确认"
+
+[node name="SubtitleLabel" type="Label" parent="MainMargin/MainVBox/Header" unique_id=955245250]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_font_sizes/font_size = 15
+text = "检查角色、技能卡、技能效果和能量消耗；可返回重新装备/调整技能。"
+autowrap_mode = 3
+
+[node name="MainPanel" type="PanelContainer" parent="MainMargin/MainVBox" unique_id=2144885990]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_vertical = 3
+
+[node name="RosterScroll" type="ScrollContainer" parent="MainMargin/MainVBox/MainPanel" unique_id=1154166580]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+horizontal_scroll_mode = 0
+
+[node name="RosterList" type="VBoxContainer" parent="MainMargin/MainVBox/MainPanel/RosterScroll" unique_id=1573338392]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_constants/separation = 12
+
+[node name="BottomPanel" type="PanelContainer" parent="MainMargin/MainVBox" unique_id=1010610684]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(0, 120)
+layout_mode = 2
+
+[node name="BottomVBox" type="VBoxContainer" parent="MainMargin/MainVBox/BottomPanel" unique_id=1389078136]
+layout_mode = 2
+theme_override_constants/separation = 10
+
+[node name="Actions" type="HBoxContainer" parent="MainMargin/MainVBox/BottomPanel/BottomVBox" unique_id=454643111]
+layout_mode = 2
+theme_override_constants/separation = 10
+
+[node name="StartButton" type="Button" parent="MainMargin/MainVBox/BottomPanel/BottomVBox/Actions" unique_id=128365470]
+unique_name_in_owner = true
+layout_mode = 2
+text = "进入战斗"
+
+[node name="BackButton" type="Button" parent="MainMargin/MainVBox/BottomPanel/BottomVBox/Actions" unique_id=996307406]
+unique_name_in_owner = true
+layout_mode = 2
+text = "返回重新装备/调整技能"
+
+[node name="StatusLabel" type="Label" parent="MainMargin/MainVBox/BottomPanel/BottomVBox" unique_id=374652599]
+unique_name_in_owner = true
+layout_mode = 2
+text = "等待确认"
+autowrap_mode = 3
