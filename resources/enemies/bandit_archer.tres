@@ -1,0 +1,15 @@
+[gd_resource type="Resource" script_class="EnemyData" load_steps=3 format=3]
+
+[ext_resource type="Script" path="res://scripts/data/enemy_data.gd" id="1"]
+[ext_resource type="Texture2D" path="res://picture/敌方单位/盗匪弩手.png" id="2"]
+
+[resource]
+script = ExtResource("1")
+id = "bandit_archer"
+name_key = "ENEMY_BANDIT_ARCHER_NAME"
+role = "archer"
+strength = 15
+max_hp = 60
+will = 3
+speed = 10
+portrait = ExtResource("2")

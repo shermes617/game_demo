@@ -1,0 +1,15 @@
+[gd_resource type="Resource" script_class="EnemyData" load_steps=3 format=3]
+
+[ext_resource type="Script" path="res://scripts/data/enemy_data.gd" id="1"]
+[ext_resource type="Texture2D" path="res://picture/敌方单位/盗匪盾卫.png" id="2"]
+
+[resource]
+script = ExtResource("1")
+id = "bandit_guard"
+name_key = "ENEMY_BANDIT_GUARD_NAME"
+role = "guard"
+strength = 9
+max_hp = 110
+will = 4
+speed = 4
+portrait = ExtResource("2")

@@ -6,6 +6,7 @@ extends Control
 const ENERGY_MAX := 10
 const START_MORALE := 80
 const ROW_NAME_KEYS := ["BATTLE_ROW_TOP", "BATTLE_ROW_MIDDLE", "BATTLE_ROW_BOTTOM"]
+const ENEMY_DATABASE := preload("res://scripts/database/enemy_database.gd")
 
 # 战斗单位数据都用 Dictionary 保存，方便 Demo 阶段快速迭代字段。
 # allies/enemies 内的单位会共享相同字段：hp、shield、row、col、field、dead 等。
@@ -74,12 +75,11 @@ func _setup_allies_from_build() -> void:
 	# 将构筑页的 4 名角色转换为战斗单位。
 	# 注意：根据最新规则，进入战斗后我方半场是空的，所以 field 初始为 false。
 	allies.clear()
-	var default_positions := {
-		"ranger": Vector2i(0, 0),
-		"priest": Vector2i(0, 1),
-		"warrior": Vector2i(1, 1),
-		"guardian": Vector2i(2, 1)
-	}
+	var default_positions: Dictionary = {}
+	default_positions["ranger"] = Vector2i(0, 0)
+	default_positions["priest"] = Vector2i(0, 1)
+	default_positions["warrior"] = Vector2i(1, 1)
+	default_positions["guardian"] = Vector2i(2, 1)
 	for index in BattleRuntime.characters.size():
 		var unit: Dictionary = BattleRuntime.build_character_runtime(index)
 		var saved_dead := false
@@ -130,23 +130,23 @@ func _make_encounter_enemies(index: int) -> Array:
 	# col/row 使用敌方 3x3 半场坐标：敌方第 0 列是前排。
 	if index == 3:
 		return [
-			_enemy("ENEMY_BANDIT_LEADER_NAME", "leader", 0, 0, 20, 140, 8, 9),
-			_enemy("ENEMY_ELITE_GUARD_NAME", "guard", 0, 1, 10, 150, 5, 5),
-			_enemy("ENEMY_OIL_BOMBER_NAME", "bomber", 2, 0, 11, 85, 4, 8),
-			_enemy("ENEMY_SHAMAN_NAME", "shaman", 2, 2, 8, 90, 14, 7)
+			_enemy("bandit_leader", 0, 0),
+			_enemy("elite_guard", 0, 1),
+			_enemy("oil_bomber", 2, 0),
+			_enemy("shaman", 2, 2)
 		]
 	if index == 4:
 		return [
-			_enemy("ENEMY_ELITE_GUARD_NAME", "guard", 0, 1, 10, 150, 5, 5),
-			_enemy("ENEMY_SUMMONER_NAME", "summoner", 2, 1, 10, 200, 10, 10),
-			_enemy("ENEMY_BANDIT_HEALER_NAME", "healer", 2, 2, 6, 55, 12, 6)
+			_enemy("elite_guard", 0, 1),
+			_enemy("summoner", 2, 1),
+			_enemy("bandit_healer", 2, 2)
 		]
 	if index == 2:
 		return [
-			_enemy("ENEMY_ELITE_ARCHER_NAME", "archer", 2, 0, 18, 70, 4, 12),
-			_enemy("ENEMY_ELITE_GUARD_NAME", "guard", 0, 1, 10, 140, 5, 5),
-			_enemy("ENEMY_ASSASSIN_NAME", "assassin", 1, 2, 17, 68, 3, 14),
-			_enemy("ENEMY_CAPTAIN_NAME", "captain", 0, 0, 11, 90, 10, 7)
+			_enemy("elite_archer", 2, 0),
+			_enemy("elite_guard", 0, 1),
+			_enemy("assassin", 1, 2),
+			_enemy("captain", 0, 0)
 		]
 	return _make_normal_encounter_enemies()
 
@@ -303,8 +303,8 @@ func _ensure_frontline_count(positions: Dictionary, occupied: Dictionary, roles:
 
 
 func _compare_role_frontline_priority(a: String, b: String) -> bool:
-	var hp_a: int = int(_normal_enemy_base(a).get("hp", 0))
-	var hp_b: int = int(_normal_enemy_base(b).get("hp", 0))
+	var hp_a: int = _normal_enemy_max_hp(a)
+	var hp_b: int = _normal_enemy_max_hp(b)
 	if hp_a != hp_b:
 		return hp_a > hp_b
 	return _preferred_enemy_row(a) < _preferred_enemy_row(b)
@@ -330,34 +330,44 @@ func _enemy_grid_key(pos: Vector2i) -> String:
 
 
 func _normal_enemy(role: String, pos: Vector2i) -> Dictionary:
-	var base: Dictionary = _normal_enemy_base(role)
-	return _enemy(
-		str(base["name_key"]),
-		role,
-		pos.x,
-		pos.y,
-		int(base["strength"]),
-		int(base["hp"]),
-		int(base["will"]),
-		int(base["speed"])
-	)
+	return _enemy(_normal_enemy_id_for_role(role), pos.x, pos.y)
 
 
-func _normal_enemy_base(role: String) -> Dictionary:
+func _normal_enemy_max_hp(role: String) -> int:
+	var enemy_data: EnemyData = ENEMY_DATABASE.get_enemy(_normal_enemy_id_for_role(role))
+	return enemy_data.max_hp if enemy_data != null else 0
+
+
+func _normal_enemy_id_for_role(role: String) -> String:
 	match role:
-		"bruiser":
-			return {"name_key": "ENEMY_BANDIT_BRUISER_NAME", "strength": 13, "hp": 75, "will": 3, "speed": 7}
 		"guard":
-			return {"name_key": "ENEMY_BANDIT_GUARD_NAME", "strength": 9, "hp": 110, "will": 4, "speed": 4}
+			return "bandit_guard"
 		"archer":
-			return {"name_key": "ENEMY_BANDIT_ARCHER_NAME", "strength": 15, "hp": 60, "will": 3, "speed": 10}
+			return "bandit_archer"
 		"healer":
-			return {"name_key": "ENEMY_BANDIT_HEALER_NAME", "strength": 6, "hp": 55, "will": 12, "speed": 6}
+			return "bandit_healer"
 		"bomber":
-			return {"name_key": "ENEMY_OIL_BOMBER_NAME", "strength": 11, "hp": 62, "will": 3, "speed": 6}
+			return "oil_bomber"
 		"demoralizer":
-			return {"name_key": "ENEMY_DEMORALIZER_NAME", "strength": 11, "hp": 68, "will": 3, "speed": 7}
-	return {"name_key": "ENEMY_BANDIT_BRUISER_NAME", "strength": 13, "hp": 75, "will": 3, "speed": 7}
+			return "demoralizer"
+	return "bandit_bruiser"
+
+
+func _elite_enemy_id_for_role(role: String) -> String:
+	match role:
+		"captain":
+			return "captain"
+		"guard":
+			return "elite_guard"
+		"archer":
+			return "elite_archer"
+		"assassin":
+			return "assassin"
+		"leader":
+			return "bandit_leader"
+		"shaman":
+			return "shaman"
+	return "elite_guard"
 
 
 func _encounter_name() -> String:
@@ -371,27 +381,19 @@ func _encounter_name() -> String:
 	return _text("ENCOUNTER_RUIN_BANDITS_NAME")
 
 
-func _enemy(name_key: String, role: String, col: int, row: int, strength: int, hp: int, will: int, speed: int) -> Dictionary:
+func _enemy(enemy_id: String, col: int, row: int) -> Dictionary:
 	# 创建敌方单位数据。role 会被 AI 用来决定行动倾向。
-	return {
-		"name_key": name_key,
-		"name": _text(name_key),
-		"role": role,
-		"team": "enemy",
-		"col": col,
-		"row": row,
-		"strength": strength,
-		"max_hp": hp,
-		"hp": hp,
-		"will": will,
-		"speed": speed,
-		"shield": 0,
-		"field": true,
-		"dead": false,
-		"status_effects": [],
-		"attack_desc": _enemy_attack_desc(role),
-		"trait_desc": _enemy_trait_desc(role)
-	}
+	var enemy_data: EnemyData = ENEMY_DATABASE.get_enemy(enemy_id)
+	if enemy_data == null:
+		push_error("Unknown enemy id: %s" % enemy_id)
+		enemy_data = ENEMY_DATABASE.get_enemy("bandit_bruiser")
+	return enemy_data.to_runtime_dict(
+		col,
+		row,
+		_text(enemy_data.name_key),
+		_enemy_attack_desc(enemy_data.role),
+		_enemy_trait_desc(enemy_data.role)
+	)
 
 
 func _enemy_attack_desc(role: String) -> String:
@@ -1170,20 +1172,7 @@ func _pick_summoned_role(summon_pool: String, frontline: bool) -> String:
 
 
 func _elite_summon_enemy(role: String, pos: Vector2i) -> Dictionary:
-	match role:
-		"captain":
-			return _enemy("ENEMY_CAPTAIN_NAME", "captain", pos.x, pos.y, 11, 90, 10, 7)
-		"guard":
-			return _enemy("ENEMY_ELITE_GUARD_NAME", "guard", pos.x, pos.y, 10, 150, 5, 5)
-		"archer":
-			return _enemy("ENEMY_ELITE_ARCHER_NAME", "archer", pos.x, pos.y, 18, 70, 4, 12)
-		"assassin":
-			return _enemy("ENEMY_ASSASSIN_NAME", "assassin", pos.x, pos.y, 17, 68, 3, 14)
-		"leader":
-			return _enemy("ENEMY_BANDIT_LEADER_NAME", "leader", pos.x, pos.y, 20, 140, 8, 9)
-		"shaman":
-			return _enemy("ENEMY_SHAMAN_NAME", "shaman", pos.x, pos.y, 8, 90, 14, 7)
-	return _enemy("ENEMY_ELITE_GUARD_NAME", "guard", pos.x, pos.y, 10, 150, 5, 5)
+	return _enemy(_elite_enemy_id_for_role(role), pos.x, pos.y)
 
 
 func _clear_summon_markers() -> void:

@@ -356,4 +356,4 @@ unique_name_in_owner = true
 layout_mode = 0
 offset_right = 180.0
 offset_bottom = 20.0
-text = "Module Preview"
+text = "BUILD_MODULE_PREVIEW"

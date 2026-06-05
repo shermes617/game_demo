@@ -1,0 +1,15 @@
+[gd_resource type="Resource" script_class="EnemyData" load_steps=3 format=3]
+
+[ext_resource type="Script" path="res://scripts/data/enemy_data.gd" id="1"]
+[ext_resource type="Texture2D" path="res://picture/敌方单位/战鼓头目.png" id="2"]
+
+[resource]
+script = ExtResource("1")
+id = "captain"
+name_key = "ENEMY_CAPTAIN_NAME"
+role = "captain"
+strength = 11
+max_hp = 90
+will = 10
+speed = 7
+portrait = ExtResource("2")

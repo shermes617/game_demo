@@ -1,0 +1,15 @@
+[gd_resource type="Resource" script_class="EnemyData" load_steps=3 format=3]
+
+[ext_resource type="Script" path="res://scripts/data/enemy_data.gd" id="1"]
+[ext_resource type="Texture2D" path="res://picture/敌方单位/盗匪打手.png" id="2"]
+
+[resource]
+script = ExtResource("1")
+id = "bandit_bruiser"
+name_key = "ENEMY_BANDIT_BRUISER_NAME"
+role = "bruiser"
+strength = 13
+max_hp = 75
+will = 3
+speed = 7
+portrait = ExtResource("2")

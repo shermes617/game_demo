@@ -1,0 +1,15 @@
+[gd_resource type="Resource" script_class="EnemyData" load_steps=3 format=3]
+
+[ext_resource type="Script" path="res://scripts/data/enemy_data.gd" id="1"]
+[ext_resource type="Texture2D" path="res://picture/敌方单位/精英弩手.png" id="2"]
+
+[resource]
+script = ExtResource("1")
+id = "elite_archer"
+name_key = "ENEMY_ELITE_ARCHER_NAME"
+role = "archer"
+strength = 18
+max_hp = 70
+will = 4
+speed = 12
+portrait = ExtResource("2")
