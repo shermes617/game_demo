@@ -18,7 +18,6 @@ config/icon="res://icon.svg"
 [autoload]
 
 BattleRuntime="*res://scripts/battle_runtime.gd"
-MCPRuntimeProbe="*res://addons/godot_mcp/runtime/mcp_runtime_probe.gd"
 TextDatabase="*res://scripts/database/text_database.gd"
 
 [display]
