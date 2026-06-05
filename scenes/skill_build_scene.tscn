@@ -1,6 +1,9 @@
-[gd_scene format=3 uid="uid://b7mho2bm0w7uv"]
+[gd_scene load_steps=5 format=3 uid="uid://b7mho2bm0w7uv"]
 
 [ext_resource type="Script" uid="uid://dsnyjuu78yat2" path="res://scripts/skill_build.gd" id="1_4pq8n"]
+[ext_resource type="Script" path="res://scripts/ui/build_option_list_view.gd" id="2_ntyfq"]
+[ext_resource type="Script" path="res://scripts/ui/skill_grid_view.gd" id="3_l3xdi"]
+[ext_resource type="Script" path="res://scripts/ui/skill_preview_panel_view.gd" id="4_jo2qh"]
 
 [node name="DemoV0" type="Control" unique_id=631103193]
 layout_mode = 3
@@ -120,6 +123,7 @@ autowrap_mode = 3
 unique_name_in_owner = true
 layout_mode = 2
 theme_override_constants/separation = 10
+script = ExtResource("2_ntyfq")
 
 [node name="SecondarySectionLabel" type="Label" parent="MainMargin/MainVBox/ContentRow/LeftPanel/LeftVBox/LeftScroll/LeftContent" unique_id=2053253126]
 unique_name_in_owner = true
@@ -131,6 +135,7 @@ text = "UI_SECONDARY_LIST"
 unique_name_in_owner = true
 layout_mode = 2
 theme_override_constants/separation = 10
+script = ExtResource("2_ntyfq")
 
 [node name="SelectionLabel" type="Label" parent="MainMargin/MainVBox/ContentRow/LeftPanel/LeftVBox/LeftScroll/LeftContent" unique_id=846470276]
 unique_name_in_owner = true
@@ -178,6 +183,7 @@ size_flags_horizontal = 4
 theme_override_constants/h_separation = 12
 theme_override_constants/v_separation = 12
 columns = 4
+script = ExtResource("3_l3xdi")
 
 [node name="BoardControls" type="HBoxContainer" parent="MainMargin/MainVBox/ContentRow/CenterPanel/CenterVBox/CardWorkspace" unique_id=1012257014]
 layout_mode = 2
@@ -256,6 +262,7 @@ unique_name_in_owner = true
 custom_minimum_size = Vector2(440, 0)
 layout_mode = 2
 size_flags_vertical = 3
+script = ExtResource("4_jo2qh")
 
 [node name="RightVBox" type="VBoxContainer" parent="MainMargin/MainVBox/ContentRow/RightPanel" unique_id=1112143035]
 layout_mode = 2

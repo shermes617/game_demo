@@ -1,0 +1,7 @@
+[gd_scene load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/ui/build_option_list_view.gd" id="1"]
+
+[node name="BuildOptionListView" type="VBoxContainer"]
+theme_override_constants/separation = 10
+script = ExtResource("1")

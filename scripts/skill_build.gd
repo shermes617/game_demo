@@ -4,6 +4,7 @@ const BOARD_COLUMNS := 4
 const BOARD_ROWS := 4
 const DATA_PATH := "res://data/demo_data.json"
 const TEXT_DATABASE_SCRIPT := preload("res://scripts/database/text_database.gd")
+const SKILL_BUILD_RULES := preload("res://scripts/rules/skill_build_rules.gd")
 
 # cards/modules/characters 保存从 JSON 读取的静态定义。
 # card_states/character_states 保存玩家在场景中编辑后的运行时状态。
@@ -29,9 +30,6 @@ var selected_rotation := 0
 var preview_message := ""
 var cursor_preview_cells: Array = []
 
-var primary_buttons: Array = []
-var secondary_buttons: Dictionary = {}
-var board_buttons: Dictionary = {}
 var fallback_text_database: Node
 
 @onready var title_label: Label = %TitleLabel
@@ -43,9 +41,9 @@ var fallback_text_database: Node
 @onready var left_panel: PanelContainer = %LeftPanel
 @onready var left_header_label: Label = %LeftHeaderLabel
 @onready var left_hint_label: Label = %LeftHintLabel
-@onready var primary_list: VBoxContainer = %PrimaryList
+@onready var primary_list = %PrimaryList
 @onready var secondary_section_label: Label = %SecondarySectionLabel
-@onready var secondary_list: VBoxContainer = %SecondaryList
+@onready var secondary_list = %SecondaryList
 @onready var selection_label: Label = %SelectionLabel
 
 @onready var center_panel: PanelContainer = %CenterPanel
@@ -53,7 +51,7 @@ var fallback_text_database: Node
 @onready var card_workspace: VBoxContainer = %CardWorkspace
 @onready var board_title_label: Label = %BoardTitleLabel
 @onready var board_hint_label: Label = %BoardHintLabel
-@onready var board_grid: GridContainer = %BoardGrid
+@onready var board_grid = %BoardGrid
 @onready var rotate_button: Button = %RotateButton
 @onready var clear_button: Button = %ClearButton
 @onready var defaults_button: Button = %DefaultsButton
@@ -67,10 +65,7 @@ var fallback_text_database: Node
 @onready var equip_selected_button: Button = %EquipSelectedButton
 @onready var unequip_all_button: Button = %UnequipAllButton
 
-@onready var right_panel: PanelContainer = %RightPanel
-@onready var preview_title_label: Label = %PreviewTitleLabel
-@onready var preview_body_label: RichTextLabel = %PreviewBodyLabel
-@onready var simulation_label: RichTextLabel = %SimulationLabel
+@onready var right_panel = %RightPanel
 
 @onready var bottom_panel: PanelContainer = %BottomPanel
 @onready var simulate_button: Button = %SimulateButton
@@ -227,13 +222,10 @@ func _style_static_scene() -> void:
 	character_profession_label.add_theme_font_size_override("font_size", 17)
 	equip_hint_label.add_theme_color_override("font_color", Color("93a0b4"))
 	equip_hint_label.add_theme_font_size_override("font_size", 17)
-	preview_title_label.add_theme_color_override("font_color", Color("edf1f8"))
-	preview_title_label.add_theme_font_size_override("font_size", 25)
 	status_label.add_theme_color_override("font_color", Color("dce5f4"))
 	status_label.add_theme_font_size_override("font_size", 17)
 
-	preview_body_label.add_theme_font_size_override("normal_font_size", 17)
-	simulation_label.add_theme_font_size_override("normal_font_size", 17)
+	right_panel.setup_styles()
 	character_stats_label.add_theme_font_size_override("normal_font_size", 17)
 	equipped_cards_label.add_theme_font_size_override("normal_font_size", 17)
 
@@ -261,7 +253,6 @@ func _style_static_scene() -> void:
 	battle_prepare_button.visible = false
 	cursor_preview_label.add_theme_color_override("font_color", Color("eef4ff"))
 	cursor_preview_label.add_theme_font_size_override("font_size", 15)
-	preview_body_label.scroll_active = false
 	character_stats_label.scroll_active = false
 	equipped_cards_label.scroll_active = false
 
@@ -287,11 +278,7 @@ func _apply_static_texts() -> void:
 	equip_hint_label.text = _text("UI_EQUIP_HINT")
 	equip_selected_button.text = _text("UI_EQUIP_SELECTED_SKILL_CARD")
 	unequip_all_button.text = _text("UI_CLEAR_SKILL_EQUIPMENT")
-	var preview_header := get_node_or_null("MainMargin/MainVBox/ContentRow/RightPanel/RightVBox/PreviewHeader")
-	if preview_header is Label:
-		preview_header.text = _text("UI_REALTIME_PREVIEW")
-	preview_title_label.text = _text("UI_PREVIEW")
-	preview_body_label.text = _text("UI_PREVIEW")
+	right_panel.set_static_texts(_text("UI_REALTIME_PREVIEW"), _text("UI_PREVIEW"))
 	var bottom_header := get_node_or_null("MainMargin/MainVBox/BottomPanel/BottomVBox/BottomHeader")
 	if bottom_header is Label:
 		bottom_header.text = _text("UI_ACTIONS_AND_FEEDBACK")
@@ -315,6 +302,10 @@ func _bind_static_actions() -> void:
 	simulate_button.pressed.connect(_simulate_release)
 	return_map_button.pressed.connect(_return_to_map)
 	next_button.pressed.connect(_handle_next_button)
+	primary_list.item_pressed.connect(_on_primary_item_pressed)
+	secondary_list.item_pressed.connect(_on_secondary_item_pressed)
+	board_grid.cell_pressed.connect(_on_board_cell_pressed)
+	board_grid.cell_right_pressed.connect(_on_board_cell_right_pressed)
 
 
 ## 构建动态节点内容，比如棋盘按钮和运行时列表项。
@@ -322,24 +313,7 @@ func _build_dynamic_controls() -> void:
 	# 场景负责提供可视化区域骨架，列表和棋盘里的重复内容仍然由代码动态生成。
 	_clear_container(primary_list)
 	_clear_container(secondary_list)
-	_clear_container(board_grid)
-	primary_buttons.clear()
-	secondary_buttons.clear()
-	board_buttons.clear()
-
-	# 棋盘按钮固定为 4x4 容器，具体哪些格子可用由技能卡数据决定。
-	for row in BOARD_ROWS:
-		for column in BOARD_COLUMNS:
-			var coord := Vector2i(column, row)
-			var cell_button := Button.new()
-			cell_button.custom_minimum_size = Vector2(104, 96)
-			cell_button.clip_text = true
-			cell_button.focus_mode = Control.FOCUS_NONE
-			cell_button.add_theme_font_size_override("font_size", 24)
-			cell_button.gui_input.connect(_on_board_cell_input.bind(coord))
-			cell_button.pressed.connect(_on_board_cell_pressed.bind(coord))
-			board_grid.add_child(cell_button)
-			board_buttons[_coord_key(coord)] = cell_button
+	board_grid.setup_grid(BOARD_COLUMNS, BOARD_ROWS, Vector2(104, 96))
 
 
 ## 清空一个容器节点下的所有子节点，常用于重建列表。
@@ -445,27 +419,6 @@ func _create_button_style(variant: String, brightness: float) -> StyleBoxFlat:
 	return style
 
 
-## 根据格子状态刷新棋盘按钮的样式。
-func _apply_board_cell_style(button: Button, background: Color, border: Color, font_color: Color) -> void:
-	var style := StyleBoxFlat.new()
-	style.bg_color = background
-	style.border_color = border
-	style.border_width_left = 1
-	style.border_width_top = 1
-	style.border_width_right = 1
-	style.border_width_bottom = 1
-	style.corner_radius_top_left = 12
-	style.corner_radius_top_right = 12
-	style.corner_radius_bottom_right = 12
-	style.corner_radius_bottom_left = 12
-	button.add_theme_stylebox_override("normal", style)
-	button.add_theme_stylebox_override("hover", style)
-	button.add_theme_stylebox_override("pressed", style)
-	button.add_theme_stylebox_override("disabled", style)
-	button.add_theme_color_override("font_color", font_color)
-	button.add_theme_color_override("font_disabled_color", font_color.darkened(0.2))
-
-
 ## 创建鼠标跟随预览的小格子样式。
 func _create_cursor_cell_style(background: Color, border: Color) -> StyleBoxFlat:
 	var style := StyleBoxFlat.new()
@@ -512,7 +465,8 @@ func _restore_defaults() -> void:
 
 
 ## 左侧主列表点击事件：技能卡页选卡，角色页选角色。
-func _on_primary_item_pressed(index: int) -> void:
+func _on_primary_item_pressed(item_key: Variant) -> void:
+	var index := int(item_key)
 	# 左侧主列表在两个页面里共用：
 	# 技能卡页选择技能卡，角色页选择角色。
 	if current_view == "card":
@@ -538,6 +492,14 @@ func _on_card_option_selected(card_id: String) -> void:
 	_refresh_ui(_format_text("BUILD_STATUS_SELECT_CARD", {"name": cards[card_id]["name"]}))
 
 
+## 左侧次级列表点击事件：技能卡页选模组，角色页选可装备技能卡。
+func _on_secondary_item_pressed(item_key: Variant) -> void:
+	if current_view == "card":
+		_on_module_selected(str(item_key))
+	else:
+		_on_card_option_selected(str(item_key))
+
+
 ## 旋转当前选中的模组。
 func _rotate_selected_module() -> void:
 	if selected_module_id.is_empty():
@@ -561,19 +523,18 @@ func _on_board_cell_pressed(coord: Vector2i) -> void:
 		_refresh_ui("")
 
 
-## 棋盘格输入事件，当前主要处理右键移除模组。
-func _on_board_cell_input(event: InputEvent, coord: Vector2i) -> void:
+## 棋盘格右键事件，当前主要处理移除模组。
+func _on_board_cell_right_pressed(coord: Vector2i) -> void:
 	if current_view != "card":
 		return
-	if event is InputEventMouseButton and event.pressed and event.button_index == MOUSE_BUTTON_RIGHT:
-		var placement_index := _find_placement_covering(selected_card_index, coord)
-		if placement_index == -1:
-			_refresh_ui(_text("BUILD_STATUS_EMPTY_CELL"))
-			return
-		var placement: Dictionary = card_states[selected_card_index]["placements"][placement_index]
-		card_states[selected_card_index]["placements"].remove_at(placement_index)
-		preview_message = ""
-		_refresh_ui(_format_text("BUILD_STATUS_REMOVE_MODULE", {"name": modules[placement["module_id"]]["name"]}))
+	var placement_index := _find_placement_covering(selected_card_index, coord)
+	if placement_index == -1:
+		_refresh_ui(_text("BUILD_STATUS_EMPTY_CELL"))
+		return
+	var placement: Dictionary = card_states[selected_card_index]["placements"][placement_index]
+	card_states[selected_card_index]["placements"].remove_at(placement_index)
+	preview_message = ""
+	_refresh_ui(_format_text("BUILD_STATUS_REMOVE_MODULE", {"name": modules[placement["module_id"]]["name"]}))
 
 
 ## 清空当前技能卡上的所有模组。
@@ -721,34 +682,39 @@ func _validate_placement(card_index: int, module_id: String, anchor: Vector2i, r
 	# 放置校验刻意写得比较严格，因为它既影响当前交互反馈，
 	# 也会影响后续接入战斗时的数据正确性。
 	var module: Dictionary = modules[module_id]
-	if _get_available_module_count(module_id) <= 0:
-		return {"ok": false, "message": _format_text("BUILD_VALIDATION_NO_AVAILABLE_MODULE", {"name": module["name"]})}
-
 	var state: Dictionary = card_states[card_index]
 	var card: Dictionary = cards[state["card_id"]]
-	if not _module_allowed_for_card(module, card):
-		return {"ok": false, "message": _format_text("BUILD_VALIDATION_MODULE_INCOMPATIBLE", {"name": module["name"]})}
-	if module.get("is_unique", false):
-		for placement in state["placements"]:
-			if modules[placement["module_id"]].get("is_unique", false):
-				return {"ok": false, "message": _text("BUILD_VALIDATION_ONE_SOLO_LIMIT")}
+	var validation := SKILL_BUILD_RULES.validate_placement(
+		card,
+		module,
+		state["placements"],
+		modules,
+		_get_available_module_count(module_id),
+		_module_allowed_for_card(module, card),
+		anchor,
+		rotation
+	)
+	if validation["ok"]:
+		return validation
+	validation["message"] = _placement_validation_message(str(validation.get("reason", "")), module)
+	return validation
 
-	var rotated_cells: Array = _get_rotated_shape(module["shape"], module["size"], rotation)
-	var occupied: Dictionary = _get_occupied_map(card_index)
-	var active_map: Dictionary = _get_active_map(card)
-	var absolute_cells: Array = []
 
-	for cell in rotated_cells:
-		var absolute: Vector2i = anchor + cell
-		if absolute.x < 0 or absolute.y < 0 or absolute.x >= card["width"] or absolute.y >= card["height"]:
-			return {"ok": false, "message": _text("BUILD_VALIDATION_OUT_OF_BOUNDS")}
-		if not active_map.has(_coord_key(absolute)):
-			return {"ok": false, "message": _text("BUILD_VALIDATION_INACTIVE_CELL")}
-		if occupied.has(_coord_key(absolute)):
-			return {"ok": false, "message": _text("BUILD_VALIDATION_OVERLAP")}
-		absolute_cells.append(absolute)
-
-	return {"ok": true, "cells": absolute_cells}
+func _placement_validation_message(reason: String, module: Dictionary) -> String:
+	match reason:
+		"no_available_module":
+			return _format_text("BUILD_VALIDATION_NO_AVAILABLE_MODULE", {"name": module["name"]})
+		"module_incompatible":
+			return _format_text("BUILD_VALIDATION_MODULE_INCOMPATIBLE", {"name": module["name"]})
+		"one_unique_limit":
+			return _text("BUILD_VALIDATION_ONE_SOLO_LIMIT")
+		"out_of_bounds":
+			return _text("BUILD_VALIDATION_OUT_OF_BOUNDS")
+		"inactive_cell":
+			return _text("BUILD_VALIDATION_INACTIVE_CELL")
+		"overlap":
+			return _text("BUILD_VALIDATION_OVERLAP")
+	return _text("BUILD_VALIDATION_OVERLAP")
 
 
 ## 统一刷新入口，所有状态变化尽量都回到这里集中刷新界面。
@@ -799,8 +765,7 @@ func _update_left_panel() -> void:
 
 ## 重新构建左侧主列表。
 func _rebuild_primary_list() -> void:
-	_clear_container(primary_list)
-	primary_buttons.clear()
+	var items: Array = []
 
 	# 技能卡页：主列表显示技能卡
 	# 角色页：主列表显示角色
@@ -810,49 +775,44 @@ func _rebuild_primary_list() -> void:
 			var card_id: String = card_order[index]
 			var card: Dictionary = cards[card_id]
 			var generated: Dictionary = _generate_skill_for_card(index)
-			var button := Button.new()
-			button.alignment = HORIZONTAL_ALIGNMENT_LEFT
-			button.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-			button.custom_minimum_size = Vector2(0, 84)
-			_style_button(button, "primary" if index == selected_card_index else "soft")
-			button.text = _format_text("BUILD_CARD_LIST_ITEM", {
-				"marker": "● " if index == selected_card_index else "",
-				"name": card["name"],
-				"type": _card_type_label(card),
-				"professions": "/".join(card["allowed_professions"]),
-				"energy": generated["energy_cost"],
-				"cells": generated["occupied_cells"]
+			items.append({
+				"key": index,
+				"text": _format_text("BUILD_CARD_LIST_ITEM", {
+					"marker": "● " if index == selected_card_index else "",
+					"name": card["name"],
+					"type": _card_type_label(card),
+					"professions": "/".join(card["allowed_professions"]),
+					"energy": generated["energy_cost"],
+					"cells": generated["occupied_cells"]
+				}),
+				"variant": "primary" if index == selected_card_index else "soft",
+				"min_height": 84
 			})
-			button.pressed.connect(_on_primary_item_pressed.bind(index))
-			primary_list.add_child(button)
-			primary_buttons.append(button)
 	else:
 		# 角色页主列表显示角色概况和已装备技能数量。
 		for index in characters.size():
 			var character: Dictionary = characters[index]
 			var equipped: Array = character_states[index]["equipped_card_ids"]
-			var button := Button.new()
-			button.alignment = HORIZONTAL_ALIGNMENT_LEFT
-			button.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-			button.custom_minimum_size = Vector2(0, 90)
-			_style_button(button, "primary" if index == selected_character_index else "soft")
-			button.text = _format_text("BUILD_CHARACTER_LIST_ITEM", {
-				"marker": "● " if index == selected_character_index else "",
-				"name": character["name"],
-				"profession": character["profession_name"],
-				"role": character["role"],
-				"equipped": equipped.size(),
-				"slots": character["allowed_card_slots"]
+			items.append({
+				"key": index,
+				"text": _format_text("BUILD_CHARACTER_LIST_ITEM", {
+					"marker": "● " if index == selected_character_index else "",
+					"name": character["name"],
+					"profession": character["profession_name"],
+					"role": character["role"],
+					"equipped": equipped.size(),
+					"slots": character["allowed_card_slots"]
+				}),
+				"variant": "primary" if index == selected_character_index else "soft",
+				"min_height": 90
 			})
-			button.pressed.connect(_on_primary_item_pressed.bind(index))
-			primary_list.add_child(button)
-			primary_buttons.append(button)
+
+	primary_list.rebuild_items(items, Callable(self, "_style_button"))
 
 
 ## 重新构建左侧次级列表。
 func _rebuild_secondary_list() -> void:
-	_clear_container(secondary_list)
-	secondary_buttons.clear()
+	var items: Array = []
 
 	# 技能卡页：次级列表显示模组库存
 	# 角色页：次级列表显示按职业过滤后的可装备技能卡
@@ -865,25 +825,22 @@ func _rebuild_secondary_list() -> void:
 				continue
 			var available: int = _get_available_module_count(module_id)
 			var compatible: bool = _module_allowed_for_card(module, cards[card_order[selected_card_index]])
-			var button := Button.new()
-			button.alignment = HORIZONTAL_ALIGNMENT_LEFT
-			button.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-			button.custom_minimum_size = Vector2(0, 108)
-			_style_button(button, "primary" if selected_module_id == module_id else "module")
-			button.text = _format_text("BUILD_MODULE_LIST_ITEM", {
-				"marker": "▶ " if selected_module_id == module_id else "",
-				"name": module["name"],
-				"count": available,
-				"compatible": "" if compatible else _text("BUILD_INCOMPATIBLE_SUFFIX"),
-				"tags": _module_tag_text(module),
-				"allowed_types": _module_allowed_type_label(module),
-				"shape": _shape_to_text(module["shape"], module["size"]),
-				"description": module["description"]
+			items.append({
+				"key": module_id,
+				"text": _format_text("BUILD_MODULE_LIST_ITEM", {
+					"marker": "▶ " if selected_module_id == module_id else "",
+					"name": module["name"],
+					"count": available,
+					"compatible": "" if compatible else _text("BUILD_INCOMPATIBLE_SUFFIX"),
+					"tags": _module_tag_text(module),
+					"allowed_types": _module_allowed_type_label(module),
+					"shape": _shape_to_text(module["shape"], module["size"]),
+					"description": module["description"]
+				}),
+				"variant": "primary" if selected_module_id == module_id else "module",
+				"min_height": 108,
+				"disabled": (available <= 0 and selected_module_id != module_id) or not compatible
 			})
-			button.disabled = (available <= 0 and selected_module_id != module_id) or not compatible
-			button.pressed.connect(_on_module_selected.bind(module_id))
-			secondary_list.add_child(button)
-			secondary_buttons[module_id] = button
 	else:
 		var character: Dictionary = characters[selected_character_index]
 		var profession: String = character["profession"]
@@ -893,23 +850,22 @@ func _rebuild_secondary_list() -> void:
 			var card: Dictionary = cards[card_id]
 			var generated: Dictionary = _generate_skill_for_card(card_index_by_id[card_id])
 			var allowed := _card_allowed_for_profession(card, profession)
-			var button := Button.new()
-			button.alignment = HORIZONTAL_ALIGNMENT_LEFT
-			button.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-			button.custom_minimum_size = Vector2(0, 90)
-			_style_button(button, "primary" if card_order[selected_card_index] == card_id else "soft")
-			button.text = _format_text("BUILD_CARD_OPTION_ITEM", {
-				"marker": _text("BUILD_EQUIPPED_PREFIX") if equipped_ids.has(card_id) else "",
-				"name": card["name"],
-				"type": _card_type_label(card),
-				"target": card["target_type"],
-				"allowed": _text("BUILD_ALLOWED") if allowed else _text("BUILD_UNAVAILABLE"),
-				"energy": generated["energy_cost"]
+			items.append({
+				"key": card_id,
+				"text": _format_text("BUILD_CARD_OPTION_ITEM", {
+					"marker": _text("BUILD_EQUIPPED_PREFIX") if equipped_ids.has(card_id) else "",
+					"name": card["name"],
+					"type": _card_type_label(card),
+					"target": card["target_type"],
+					"allowed": _text("BUILD_ALLOWED") if allowed else _text("BUILD_UNAVAILABLE"),
+					"energy": generated["energy_cost"]
+				}),
+				"variant": "primary" if card_order[selected_card_index] == card_id else "soft",
+				"min_height": 90,
+				"disabled": not allowed
 			})
-			button.disabled = not allowed
-			button.pressed.connect(_on_card_option_selected.bind(card_id))
-			secondary_list.add_child(button)
-			secondary_buttons[card_id] = button
+
+	secondary_list.rebuild_items(items, Callable(self, "_style_button"))
 
 
 ## 根据当前页面决定中间工作区显示技能卡构筑还是角色装备。
@@ -1005,21 +961,15 @@ func _update_board() -> void:
 		for column in BOARD_COLUMNS:
 			var coord := Vector2i(column, row)
 			var key := _coord_key(coord)
-			var button: Button = board_buttons[key]
-			button.disabled = false
 
 			# 先处理超出技能卡尺寸的格子。
 			if column >= int(card["width"]) or row >= int(card["height"]):
-				button.text = ""
-				button.disabled = true
-				_apply_board_cell_style(button, Color("14181f"), Color("14181f"), Color("697386"))
+				board_grid.set_cell_state(coord, "", "", true, Color("14181f"), Color("14181f"), Color("697386"))
 				continue
 
 			# 再处理技能卡形状中原本就不可用的格子。
 			if not active_map.has(key):
-				button.text = ""
-				button.disabled = true
-				_apply_board_cell_style(button, Color("1a1f28"), Color("202734"), Color("697386"))
+				board_grid.set_cell_state(coord, "", "", true, Color("1a1f28"), Color("202734"), Color("697386"))
 				continue
 
 			# 最后区分：已被模组占用 / 特殊空格 / 普通空格。
@@ -1027,17 +977,20 @@ func _update_board() -> void:
 				var placement: Dictionary = placement_map[key]
 				var module: Dictionary = modules[placement["module_id"]]
 				var module_color: Color = _module_color(module)
-				_apply_board_cell_style(button, module_color, module_color.lightened(0.25), Color("f7f9fc"))
-				button.text = module["short"]
-				button.tooltip_text = "%s\nTag：%s\n%s" % [module["name"], _module_tag_text(module), module["description"]]
+				board_grid.set_cell_state(
+					coord,
+					module["short"],
+					"%s\nTag：%s\n%s" % [module["name"], _module_tag_text(module), module["description"]],
+					false,
+					module_color,
+					module_color.lightened(0.25),
+					Color("f7f9fc")
+				)
 			else:
-				button.text = "★" if special_map.has(key) else "·"
 				if special_map.has(key):
-					_apply_board_cell_style(button, Color("5e4f28"), Color("c09a45"), Color("ffe6ad"))
-					button.tooltip_text = special_map[key]["label"]
+					board_grid.set_cell_state(coord, "★", special_map[key]["label"], false, Color("5e4f28"), Color("c09a45"), Color("ffe6ad"))
 				else:
-					_apply_board_cell_style(button, Color("283241"), Color("37465a"), Color("91a0b5"))
-					button.tooltip_text = _text("BUILD_PLACEABLE_CELL")
+					board_grid.set_cell_state(coord, "·", _text("BUILD_PLACEABLE_CELL"), false, Color("283241"), Color("37465a"), Color("91a0b5"))
 
 
 ## 更新右侧预览区，始终围绕当前选中的技能卡展示结果。
@@ -1047,7 +1000,7 @@ func _update_preview() -> void:
 	var card: Dictionary = cards[card_id]
 	var generated: Dictionary = _generate_skill_for_card(selected_card_index)
 
-	preview_title_label.text = _format_text("BUILD_PREVIEW_TITLE", {"name": card["name"]})
+	var preview_title := _format_text("BUILD_PREVIEW_TITLE", {"name": card["name"]})
 
 	var lines := PackedStringArray()
 	lines.append(_text("BUILD_PREVIEW_PROFESSION_LIMIT"))
@@ -1132,19 +1085,19 @@ func _update_preview() -> void:
 
 	lines.append("")
 	lines.append(_text("BUILD_PREVIEW_SPECIALS"))
-	if generated["triggered_specials"].is_empty():
+	if generated["triggered_special_events"].is_empty():
 		lines.append(_text("BUILD_PREVIEW_NO_SPECIALS"))
 	else:
-		for special_text in generated["triggered_specials"]:
-			lines.append(special_text)
+		for special_event in generated["triggered_special_events"]:
+			lines.append(_special_event_text(special_event))
 
 	lines.append("")
 	lines.append(_text("BUILD_PREVIEW_MODULE_SUMMARY"))
-	if generated["module_summaries"].is_empty():
+	if generated["module_summary_events"].is_empty():
 		lines.append(_text("BUILD_PREVIEW_NONE"))
 	else:
-		for summary in generated["module_summaries"]:
-			lines.append(summary)
+		for summary_event in generated["module_summary_events"]:
+			lines.append(_module_summary_text(summary_event))
 
 	if current_view == "character":
 		var character: Dictionary = characters[selected_character_index]
@@ -1156,8 +1109,7 @@ func _update_preview() -> void:
 			"allowed": _text("BUILD_PREVIEW_CAN") if _card_allowed_for_profession(card, character["profession"]) else _text("BUILD_PREVIEW_CANNOT")
 		}))
 
-	preview_body_label.text = "\n".join(lines)
-	simulation_label.text = preview_message
+	right_panel.set_preview(preview_title, "\n".join(lines), preview_message)
 
 
 ## 更新鼠标跟随的模组预览。
@@ -1199,12 +1151,7 @@ func _update_cursor_preview() -> void:
 
 ## 计算一个形状的包围盒大小，用于确定鼠标预览区域尺寸。
 func _shape_bounds(shape: Array) -> Vector2i:
-	var max_x := 0
-	var max_y := 0
-	for cell in shape:
-		max_x = max(max_x, cell.x)
-		max_y = max(max_y, cell.y)
-	return Vector2i(max_x + 1, max_y + 1)
+	return SKILL_BUILD_RULES.shape_bounds(shape)
 
 
 ## 根据当前技能卡上的模组摆放结果，生成最终技能数据。
@@ -1232,8 +1179,8 @@ func _generate_skill_for_card(card_index: int) -> Dictionary:
 		"speed_duration": 1,
 		"damage_reduction_duration": 1,
 		"anti_shield_bonus": false,
-		"triggered_specials": [],
-		"module_summaries": []
+		"triggered_special_events": [],
+		"module_summary_events": []
 	}
 
 	var special_map: Dictionary = _get_special_map(card)
@@ -1255,27 +1202,27 @@ func _generate_skill_for_card(card_index: int) -> Dictionary:
 				"damage_boost":
 					if effects.has("damage_pct"):
 						effects["damage_pct"] *= 1.3
-						module_specials.append(_format_text("BUILD_SPECIAL_TRIGGER", {"module": module["name"], "label": special["label"]}))
+						module_specials.append(_special_trigger_event(module, special))
 				"heal_boost":
 					if effects.has("heal_pct"):
 						effects["heal_pct"] *= 1.25
-						module_specials.append(_format_text("BUILD_SPECIAL_TRIGGER", {"module": module["name"], "label": special["label"]}))
+						module_specials.append(_special_trigger_event(module, special))
 				"shield_boost":
 					if effects.has("shield_pct"):
 						effects["shield_pct"] *= 1.2
-						module_specials.append(_format_text("BUILD_SPECIAL_TRIGGER", {"module": module["name"], "label": special["label"]}))
+						module_specials.append(_special_trigger_event(module, special))
 					if effects.has("morale_shield"):
 						var morale_shield: Dictionary = effects["morale_shield"]
 						morale_shield["shield_pct"] = float(morale_shield.get("shield_pct", 0.0)) * 1.2
-						module_specials.append(_format_text("BUILD_SPECIAL_TRIGGER", {"module": module["name"], "label": special["label"]}))
+						module_specials.append(_special_trigger_event(module, special))
 				"support_duration":
 					if effects.has("speed_buff") or effects.has("damage_reduction_pct"):
 						module_duration_bonus += 1
-						module_specials.append(_format_text("BUILD_SPECIAL_TRIGGER", {"module": module["name"], "label": special["label"]}))
+						module_specials.append(_special_trigger_event(module, special))
 				"anti_shield":
 					if effects.has("damage_pct"):
 						result["anti_shield_bonus"] = true
-						module_specials.append(_format_text("BUILD_SPECIAL_TRIGGER", {"module": module["name"], "label": special["label"]}))
+						module_specials.append(_special_trigger_event(module, special))
 
 		# 把这个模组最终生效的结果累加到技能总结果上。
 		result["damage_pct"] += effects.get("damage_pct", 0.0)
@@ -1299,9 +1246,9 @@ func _generate_skill_for_card(card_index: int) -> Dictionary:
 			result["damage_reduction_pct"] += int(effects.get("damage_reduction_pct", 0))
 			result["damage_reduction_duration"] = max(int(result["damage_reduction_duration"]), 1 + module_duration_bonus)
 		result["occupied_cells"] += placement["cells"].size()
-		result["module_summaries"].append("%s [%s] | %s：%s" % [module["name"], _module_tag_text(module), _shape_to_text(module["shape"], module["size"]), module["description"]])
-		for text in module_specials:
-			result["triggered_specials"].append(text)
+		result["module_summary_events"].append(_module_summary_event(module))
+		for event in module_specials:
+			result["triggered_special_events"].append(event)
 
 	for placement in state["placements"]:
 		var module: Dictionary = modules[placement["module_id"]]
@@ -1322,10 +1269,11 @@ func _generate_skill_for_card(card_index: int) -> Dictionary:
 					"flat": 0,
 					"module_name": module["name"]
 				})
-				result["triggered_specials"].append(_format_text("BUILD_BURNING_STRIKE_SPECIAL", {
+				result["triggered_special_events"].append({
+					"type": "burning_strike",
 					"module": module["name"],
-					"value": "%.0f" % burn_pct
-				}))
+					"value": burn_pct
+				})
 
 	if result["speed_buff"] > 0 or result["damage_reduction_pct"] > 0:
 		result["support_duration"] = max(int(result["speed_duration"]), int(result["damage_reduction_duration"]))
@@ -1334,21 +1282,49 @@ func _generate_skill_for_card(card_index: int) -> Dictionary:
 	return result
 
 
+func _special_trigger_event(module: Dictionary, special: Dictionary) -> Dictionary:
+	return {
+		"type": "special_trigger",
+		"module": module["name"],
+		"label": special["label"]
+	}
+
+
+func _module_summary_event(module: Dictionary) -> Dictionary:
+	return {
+		"module": module,
+		"description": module["description"]
+	}
+
+
+func _special_event_text(event: Dictionary) -> String:
+	match str(event.get("type", "")):
+		"special_trigger":
+			return _format_text("BUILD_SPECIAL_TRIGGER", {
+				"module": event.get("module", ""),
+				"label": event.get("label", "")
+			})
+		"burning_strike":
+			return _format_text("BUILD_BURNING_STRIKE_SPECIAL", {
+				"module": event.get("module", ""),
+				"value": "%.0f" % float(event.get("value", 0.0))
+			})
+	return ""
+
+
+func _module_summary_text(event: Dictionary) -> String:
+	var module: Dictionary = event.get("module", {})
+	return "%s [%s] | %s：%s" % [
+		module.get("name", ""),
+		_module_tag_text(module),
+		_shape_to_text(module.get("shape", []), module.get("size", Vector2i.ZERO)),
+		event.get("description", "")
+	]
+
+
 ## 按技能卡能量曲线和占用格数计算当前技能消耗。
 func _energy_cost_for(curve: String, occupied_cells: int) -> int:
-	if occupied_cells <= 0:
-		return 0
-	if curve == "range":
-		if occupied_cells <= 3:
-			return 1
-		if occupied_cells <= 6:
-			return 2
-		return 3
-	if occupied_cells <= 5:
-		return 1
-	if occupied_cells <= 10:
-		return 2
-	return 3
+	return SKILL_BUILD_RULES.energy_cost_for(curve, occupied_cells)
 
 
 ## 把技能卡的能量曲线转换成玩家能直接阅读的规则说明。
@@ -1383,51 +1359,28 @@ func _get_available_module_count(module_id: String) -> int:
 
 ## 根据旋转角度返回模组旋转后的形状坐标。
 func _get_rotated_shape(shape: Array, size: Vector2i, rotation: int) -> Array:
-	var normalized_rotation := rotation % 4
-	var current_cells: Array = shape.duplicate()
-	var current_size := size
-	for _i in range(normalized_rotation):
-		var rotated: Array = []
-		for cell in current_cells:
-			rotated.append(Vector2i(current_size.y - 1 - cell.y, cell.x))
-		current_cells = rotated
-		current_size = Vector2i(current_size.y, current_size.x)
-	return current_cells
+	return SKILL_BUILD_RULES.rotated_shape(shape, size, rotation)
 
 
 ## 找到某个棋盘格覆盖的是第几个模组，用于右键删除。
 func _find_placement_covering(card_index: int, coord: Vector2i) -> int:
 	var placements: Array = card_states[card_index]["placements"]
-	for index in placements.size():
-		for cell in placements[index]["cells"]:
-			if cell == coord:
-				return index
-	return -1
+	return SKILL_BUILD_RULES.find_placement_covering(placements, coord)
 
 
 ## 生成当前技能卡已占用格子的查询表，便于快速判断重叠。
 func _get_occupied_map(card_index: int) -> Dictionary:
-	var occupied := {}
-	for placement in card_states[card_index]["placements"]:
-		for cell in placement["cells"]:
-			occupied[_coord_key(cell)] = true
-	return occupied
+	return SKILL_BUILD_RULES.occupied_map(card_states[card_index]["placements"])
 
 
 ## 把技能卡的可用格子转成查询表。
 func _get_active_map(card: Dictionary) -> Dictionary:
-	var active := {}
-	for cell in card["active_cells"]:
-		active[_coord_key(cell)] = true
-	return active
+	return SKILL_BUILD_RULES.active_map(card)
 
 
 ## 把技能卡的特殊格转成查询表。
 func _get_special_map(card: Dictionary) -> Dictionary:
-	var special := {}
-	for slot in card["special_slots"]:
-		special[_coord_key(slot["pos"])] = slot
-	return special
+	return SKILL_BUILD_RULES.special_map(card)
 
 
 ## 把模组形状转换成文本，显示在左侧列表里帮助识别。
@@ -1437,7 +1390,7 @@ func _shape_to_text(shape: Array, size: Vector2i) -> String:
 
 ## 判断某张技能卡是否允许某个职业使用。
 func _card_allowed_for_profession(card: Dictionary, profession: String) -> bool:
-	return card["allowed_professions"].has(profession)
+	return SKILL_BUILD_RULES.card_allowed_for_profession(card, profession)
 
 
 func _module_allowed_for_card(module: Dictionary, card: Dictionary) -> bool:
@@ -1524,16 +1477,11 @@ func _status_display_name(status_id: String) -> String:
 
 ## 把坐标转成字符串键，便于 Dictionary 查询。
 func _coord_key(coord: Vector2i) -> String:
-	return "%d_%d" % [coord.x, coord.y]
+	return SKILL_BUILD_RULES.coord_key(coord)
 
 
 func _placements_adjacent(a: Dictionary, b: Dictionary) -> bool:
-	for acell in a.get("cells", []):
-		for bcell in b.get("cells", []):
-			var distance: int = abs(int(acell.x) - int(bcell.x)) + abs(int(acell.y) - int(bcell.y))
-			if distance == 1:
-				return true
-	return false
+	return SKILL_BUILD_RULES.placements_adjacent(a, b)
 
 
 ## 把 JSON 中的一组坐标数组批量转成 Vector2i。
