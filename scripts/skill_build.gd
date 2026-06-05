@@ -5,6 +5,7 @@ const BOARD_ROWS := 4
 const DATA_PATH := "res://data/demo_data.json"
 const TEXT_DATABASE_SCRIPT := preload("res://scripts/database/text_database.gd")
 const SKILL_BUILD_RULES := preload("res://scripts/rules/skill_build_rules.gd")
+const SKILL_PREVIEW_FORMATTER := preload("res://scripts/ui/skill_preview_formatter.gd")
 
 # cards/modules/characters 保存从 JSON 读取的静态定义。
 # card_states/character_states 保存玩家在场景中编辑后的运行时状态。
@@ -999,117 +1000,19 @@ func _update_preview() -> void:
 	var card_id: String = card_order[selected_card_index]
 	var card: Dictionary = cards[card_id]
 	var generated: Dictionary = _generate_skill_for_card(selected_card_index)
-
-	var preview_title := _format_text("BUILD_PREVIEW_TITLE", {"name": card["name"]})
-
-	var lines := PackedStringArray()
-	lines.append(_text("BUILD_PREVIEW_PROFESSION_LIMIT"))
-	lines.append("/".join(card["allowed_professions"]))
-	lines.append(_text("BUILD_PREVIEW_SKILL_TYPE"))
-	lines.append(_card_type_label(card))
-	lines.append("")
-	lines.append(_text("BUILD_PREVIEW_TARGET_AND_COST"))
-	lines.append(_format_text("BUILD_PREVIEW_TARGET", {"target": card["target_type"]}))
-	lines.append(_format_text("BUILD_PREVIEW_ENERGY", {"energy": generated["energy_cost"]}))
-	lines.append(_format_text("BUILD_PREVIEW_OCCUPIED_CELLS", {"cells": generated["occupied_cells"]}))
-	lines.append(_energy_rule_text(card["energy_curve"]))
-	lines.append("")
-	lines.append(_text("BUILD_PREVIEW_SKILL_EFFECT"))
-	if generated["occupied_cells"] == 0:
-		lines.append(_text("BUILD_PREVIEW_NO_MODULES"))
-	else:
-		# 这里把生成后的技能结果按类型分项展示出来。
-		var morale_damage_pct := 0.0
-		var morale_damage_cost := 0
-		for morale_damage in generated.get("morale_damage_modules", []):
-			morale_damage_pct += float(morale_damage.get("damage_pct", 0.0))
-			morale_damage_cost += int(morale_damage.get("cost", 0))
-		var total_damage_pct: float = float(generated["damage_pct"]) + morale_damage_pct
-		if total_damage_pct > 0.0:
-			var damage_text := _format_text("BUILD_PREVIEW_DAMAGE", {"value": "%.0f" % total_damage_pct})
-			if morale_damage_pct > 0.0:
-				damage_text += _format_text("BUILD_PREVIEW_MORALE_APPEND", {
-					"cost": morale_damage_cost,
-					"value": "%.0f" % morale_damage_pct
-				})
-			lines.append(damage_text)
-		if generated["heal_pct"] > 0.0:
-			lines.append(_format_text("BUILD_PREVIEW_HEAL", {"value": "%.0f" % generated["heal_pct"]}))
-		var morale_shield_pct := 0.0
-		var morale_shield_cost := 0
-		for morale_shield in generated.get("morale_shield_modules", []):
-			morale_shield_pct += float(morale_shield.get("shield_pct", 0.0))
-			morale_shield_cost += int(morale_shield.get("cost", 0))
-		var total_shield_pct: float = float(generated["shield_pct"]) + morale_shield_pct
-		if total_shield_pct > 0.0:
-			var shield_text := _format_text("BUILD_PREVIEW_SHIELD", {"value": "%.0f" % total_shield_pct})
-			if morale_shield_pct > 0.0:
-				shield_text += _format_text("BUILD_PREVIEW_MORALE_APPEND", {
-					"cost": morale_shield_cost,
-					"value": "%.0f" % morale_shield_pct
-				})
-			lines.append(shield_text)
-		if generated["pierce_pct"] > 0.0:
-			lines.append(_format_text("BUILD_PREVIEW_PIERCE", {"value": "%.0f" % generated["pierce_pct"]}))
-		if generated["morale_gain"] > 0:
-			lines.append(_format_text("BUILD_PREVIEW_MORALE_GAIN", {"value": generated["morale_gain"]}))
-		for status in generated.get("status_modules", []):
-			var status_id := str(status.get("id", ""))
-			if status_id == "burn" and status.has("scale_pct"):
-				var flat_layers: int = int(status.get("flat", 0))
-				var flat_text := ""
-				if flat_layers > 0:
-					flat_text = _format_text("BUILD_PREVIEW_FLAT_LAYER_APPEND", {"layers": flat_layers})
-				lines.append(_format_text("BUILD_PREVIEW_BURN", {
-					"value": "%.0f" % float(status.get("scale_pct", 0.0)),
-					"stat": str(status.get("scale_stat", "strength")),
-					"flat": flat_text
-				}))
-			else:
-				lines.append(_format_text("BUILD_PREVIEW_STATUS_LAYERS", {
-					"status": _status_display_name(status_id),
-					"layers": int(status.get("layers", 0))
-				}))
-		if generated["speed_buff"] > 0:
-			lines.append(_format_text("BUILD_PREVIEW_SPEED", {
-				"speed": generated["speed_buff"],
-				"turns": int(generated.get("speed_duration", generated["support_duration"]))
-			}))
-		if generated["damage_reduction_pct"] > 0:
-			lines.append(_format_text("BUILD_PREVIEW_GUARD", {
-				"value": generated["damage_reduction_pct"],
-				"turns": int(generated.get("damage_reduction_duration", generated["support_duration"]))
-			}))
-		if generated["anti_shield_bonus"]:
-			lines.append(_text("BUILD_PREVIEW_ANTI_SHIELD"))
-
-	lines.append("")
-	lines.append(_text("BUILD_PREVIEW_SPECIALS"))
-	if generated["triggered_special_events"].is_empty():
-		lines.append(_text("BUILD_PREVIEW_NO_SPECIALS"))
-	else:
-		for special_event in generated["triggered_special_events"]:
-			lines.append(_special_event_text(special_event))
-
-	lines.append("")
-	lines.append(_text("BUILD_PREVIEW_MODULE_SUMMARY"))
-	if generated["module_summary_events"].is_empty():
-		lines.append(_text("BUILD_PREVIEW_NONE"))
-	else:
-		for summary_event in generated["module_summary_events"]:
-			lines.append(_module_summary_text(summary_event))
-
-	if current_view == "character":
-		var character: Dictionary = characters[selected_character_index]
-		# 角色页会额外给出当前角色和当前技能卡之间的职业匹配结论。
-		lines.append("")
-		lines.append(_text("BUILD_PREVIEW_EQUIP_CHECK"))
-		lines.append(_format_text("BUILD_PREVIEW_CHARACTER_CAN_USE", {
-			"name": character["name"],
-			"allowed": _text("BUILD_PREVIEW_CAN") if _card_allowed_for_profession(card, character["profession"]) else _text("BUILD_PREVIEW_CANNOT")
-		}))
-
-	right_panel.set_preview(preview_title, "\n".join(lines), preview_message)
+	var character: Dictionary = characters[selected_character_index] if current_view == "character" else {}
+	var formatter = SKILL_PREVIEW_FORMATTER.new({
+		"text": Callable(self, "_text"),
+		"format": Callable(self, "_format_text"),
+		"card_type": Callable(self, "_card_type_label"),
+		"energy_rule": Callable(self, "_energy_rule_text"),
+		"status_name": Callable(self, "_status_display_name"),
+		"card_allowed": Callable(self, "_card_allowed_for_profession"),
+		"special_event": Callable(self, "_special_event_text"),
+		"module_summary": Callable(self, "_module_summary_text")
+	})
+	var preview: Dictionary = formatter.build_preview(card, generated, current_view, character)
+	right_panel.set_preview(preview["title"], preview["body"], preview_message)
 
 
 ## 更新鼠标跟随的模组预览。
@@ -1160,134 +1063,33 @@ func _generate_skill_for_card(card_index: int) -> Dictionary:
 	# UI 中展示的派生结果，以及未来战斗中要消费的技能数值，都应该从这里统一生成。
 	var state: Dictionary = card_states[card_index]
 	var card: Dictionary = cards[state["card_id"]]
-	var result := {
-		"name": card["name"],
-		"target": card["target_type"],
-		"energy_cost": 0,
-		"occupied_cells": 0,
-		"damage_pct": 0.0,
-		"heal_pct": 0.0,
-		"shield_pct": 0.0,
-		"pierce_pct": 0.0,
-		"morale_gain": 0,
-		"morale_damage_modules": [],
-		"morale_shield_modules": [],
-		"status_modules": [],
-		"speed_buff": 0,
-		"damage_reduction_pct": 0,
-		"support_duration": 1,
-		"speed_duration": 1,
-		"damage_reduction_duration": 1,
-		"anti_shield_bonus": false,
-		"triggered_special_events": [],
-		"module_summary_events": []
-	}
+	var result: Dictionary = SKILL_BUILD_RULES.create_empty_skill_result(card)
 
 	var special_map: Dictionary = _get_special_map(card)
 
 	# 逐个读取当前技能卡上的模组，并叠加它们的效果。
 	for placement in state["placements"]:
 		var module: Dictionary = modules[placement["module_id"]]
-		var effects: Dictionary = module["effects"].duplicate(true)
-		var module_specials: Array = []
-		var module_duration_bonus := 0
-
-		# 模组如果压在特殊格上，会在这里对效果做二次修正。
-		for cell in placement["cells"]:
-			var key := _coord_key(cell)
-			if not special_map.has(key):
-				continue
-			var special: Dictionary = special_map[key]
-			match special["type"]:
-				"damage_boost":
-					if effects.has("damage_pct"):
-						effects["damage_pct"] *= 1.3
-						module_specials.append(_special_trigger_event(module, special))
-				"heal_boost":
-					if effects.has("heal_pct"):
-						effects["heal_pct"] *= 1.25
-						module_specials.append(_special_trigger_event(module, special))
-				"shield_boost":
-					if effects.has("shield_pct"):
-						effects["shield_pct"] *= 1.2
-						module_specials.append(_special_trigger_event(module, special))
-					if effects.has("morale_shield"):
-						var morale_shield: Dictionary = effects["morale_shield"]
-						morale_shield["shield_pct"] = float(morale_shield.get("shield_pct", 0.0)) * 1.2
-						module_specials.append(_special_trigger_event(module, special))
-				"support_duration":
-					if effects.has("speed_buff") or effects.has("damage_reduction_pct"):
-						module_duration_bonus += 1
-						module_specials.append(_special_trigger_event(module, special))
-				"anti_shield":
-					if effects.has("damage_pct"):
-						result["anti_shield_bonus"] = true
-						module_specials.append(_special_trigger_event(module, special))
+		var special_result: Dictionary = SKILL_BUILD_RULES.apply_special_slot_effects(module, module["effects"], placement, special_map)
+		var effects: Dictionary = special_result["effects"]
+		var module_duration_bonus: int = int(special_result["duration_bonus"])
+		if special_result["anti_shield_bonus"]:
+			result["anti_shield_bonus"] = true
 
 		# 把这个模组最终生效的结果累加到技能总结果上。
-		result["damage_pct"] += effects.get("damage_pct", 0.0)
-		result["heal_pct"] += effects.get("heal_pct", 0.0)
-		result["shield_pct"] += effects.get("shield_pct", 0.0)
-		result["pierce_pct"] += effects.get("pierce_pct", 0.0)
-		if effects.has("morale_gain"):
-			result["morale_gain"] = max(int(result["morale_gain"]), int(effects["morale_gain"]))
-		if effects.has("morale_damage"):
-			result["morale_damage_modules"].append(effects["morale_damage"].duplicate(true))
-		if effects.has("morale_shield"):
-			result["morale_shield_modules"].append(effects["morale_shield"].duplicate(true))
-		if effects.has("status"):
-			var status_data: Dictionary = effects["status"].duplicate(true)
-			status_data["module_name"] = module["name"]
-			result["status_modules"].append(status_data)
-		if effects.has("speed_buff"):
-			result["speed_buff"] += int(effects.get("speed_buff", 0))
-			result["speed_duration"] = max(int(result["speed_duration"]), 1 + module_duration_bonus)
-		if effects.has("damage_reduction_pct"):
-			result["damage_reduction_pct"] += int(effects.get("damage_reduction_pct", 0))
-			result["damage_reduction_duration"] = max(int(result["damage_reduction_duration"]), 1 + module_duration_bonus)
-		result["occupied_cells"] += placement["cells"].size()
+		SKILL_BUILD_RULES.apply_module_effects_to_result(result, module, effects, placement, module_duration_bonus)
 		result["module_summary_events"].append(_module_summary_event(module))
-		for event in module_specials:
+		for event in special_result["special_events"]:
 			result["triggered_special_events"].append(event)
 
 	for placement in state["placements"]:
 		var module: Dictionary = modules[placement["module_id"]]
-		if str(module.get("id", "")).begins_with("burning_strike"):
-			var adjacent_damage := 0.0
-			for other in state["placements"]:
-				if other == placement or not _placements_adjacent(placement, other):
-					continue
-				var other_module: Dictionary = modules[other["module_id"]]
-				adjacent_damage += float(other_module.get("effects", {}).get("damage_pct", 0.0))
-			if adjacent_damage > 0.0:
-				var factor: float = float(module.get("effects", {}).get("burning_strike_factor", 0.5))
-				var burn_pct: float = adjacent_damage * factor
-				result["status_modules"].append({
-					"id": "burn",
-					"scale_stat": "strength",
-					"scale_pct": burn_pct,
-					"flat": 0,
-					"module_name": module["name"]
-				})
-				result["triggered_special_events"].append({
-					"type": "burning_strike",
-					"module": module["name"],
-					"value": burn_pct
-				})
+		var burning_event: Dictionary = SKILL_BUILD_RULES.burning_strike_event(module, placement, state["placements"], modules)
+		if not burning_event.is_empty():
+			result["status_modules"].append(burning_event["status"])
+			result["triggered_special_events"].append(burning_event["event"])
 
-	if result["speed_buff"] > 0 or result["damage_reduction_pct"] > 0:
-		result["support_duration"] = max(int(result["speed_duration"]), int(result["damage_reduction_duration"]))
-
-	result["energy_cost"] = _energy_cost_for(card["energy_curve"], result["occupied_cells"])
-	return result
-
-
-func _special_trigger_event(module: Dictionary, special: Dictionary) -> Dictionary:
-	return {
-		"type": "special_trigger",
-		"module": module["name"],
-		"label": special["label"]
-	}
+	return SKILL_BUILD_RULES.finalize_skill_result(result, card)
 
 
 func _module_summary_event(module: Dictionary) -> Dictionary:

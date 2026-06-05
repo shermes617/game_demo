@@ -1,9 +1,9 @@
-[gd_scene load_steps=5 format=3 uid="uid://b7mho2bm0w7uv"]
+[gd_scene format=3 uid="uid://b7mho2bm0w7uv"]
 
 [ext_resource type="Script" uid="uid://dsnyjuu78yat2" path="res://scripts/skill_build.gd" id="1_4pq8n"]
-[ext_resource type="Script" path="res://scripts/ui/build_option_list_view.gd" id="2_ntyfq"]
-[ext_resource type="Script" path="res://scripts/ui/skill_grid_view.gd" id="3_l3xdi"]
-[ext_resource type="Script" path="res://scripts/ui/skill_preview_panel_view.gd" id="4_jo2qh"]
+[ext_resource type="Script" uid="uid://cu5x3a507t8c4" path="res://scripts/ui/build_option_list_view.gd" id="2_ntyfq"]
+[ext_resource type="Script" uid="uid://bixe1ylyilg4i" path="res://scripts/ui/skill_grid_view.gd" id="3_l3xdi"]
+[ext_resource type="Script" uid="uid://c1h2hr7bmcjc3" path="res://scripts/ui/skill_preview_panel_view.gd" id="4_jo2qh"]
 
 [node name="DemoV0" type="Control" unique_id=631103193]
 layout_mode = 3
