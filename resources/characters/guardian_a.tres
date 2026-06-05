@@ -1,0 +1,18 @@
+[gd_resource type="Resource" script_class="CharacterData" load_steps=3 format=3]
+
+[ext_resource type="Script" path="res://scripts/data/character_data.gd" id="1"]
+[ext_resource type="Texture2D" path="res://picture/我方单位/坦克.png" id="2"]
+
+[resource]
+script = ExtResource("1")
+id = "guardian_a"
+name_key = "CHARACTER_GUARDIAN_A_NAME"
+profession = "guardian"
+profession_name_key = "CHARACTER_GUARDIAN_A_PROFESSION"
+role_key = "CHARACTER_GUARDIAN_A_ROLE"
+allowed_card_slots = 1
+strength = 8
+max_hp = 130
+will = 8
+speed = 5
+portrait = ExtResource("2")

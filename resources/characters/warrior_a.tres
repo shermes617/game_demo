@@ -1,0 +1,18 @@
+[gd_resource type="Resource" script_class="CharacterData" load_steps=3 format=3]
+
+[ext_resource type="Script" path="res://scripts/data/character_data.gd" id="1"]
+[ext_resource type="Texture2D" path="res://picture/我方单位/战士.png" id="2"]
+
+[resource]
+script = ExtResource("1")
+id = "warrior_a"
+name_key = "CHARACTER_WARRIOR_A_NAME"
+profession = "warrior"
+profession_name_key = "CHARACTER_WARRIOR_A_PROFESSION"
+role_key = "CHARACTER_WARRIOR_A_ROLE"
+allowed_card_slots = 1
+strength = 14
+max_hp = 90
+will = 6
+speed = 8
+portrait = ExtResource("2")

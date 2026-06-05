@@ -7,6 +7,7 @@ const ENERGY_MAX := 10
 const START_MORALE := 80
 const ROW_NAME_KEYS := ["BATTLE_ROW_TOP", "BATTLE_ROW_MIDDLE", "BATTLE_ROW_BOTTOM"]
 const ENEMY_DATABASE := preload("res://scripts/database/enemy_database.gd")
+const BATTLE_UNIT_VIEW_SCENE := preload("res://scenes/ui/battle_unit_view.tscn")
 
 # 战斗单位数据都用 Dictionary 保存，方便 Demo 阶段快速迭代字段。
 # allies/enemies 内的单位会共享相同字段：hp、shield、row、col、field、dead 等。
@@ -1602,33 +1603,36 @@ func _rebuild_grid(container: VBoxContainer, units: Array, is_ally: bool) -> voi
 					cell.gui_input.connect(_on_move_cell_input.bind(col, row))
 				else:
 					cell.gui_input.connect(_on_ally_target_cell_input.bind(unit))
-			var label := RichTextLabel.new()
-			label.bbcode_enabled = true
-			label.fit_content = true
-			label.scroll_active = false
-			label.mouse_filter = Control.MOUSE_FILTER_IGNORE
-			label.add_theme_font_size_override("normal_font_size", 15)
-			label.add_theme_color_override("default_color", Color("dce5f4"))
 			if unit.is_empty():
+				var label := RichTextLabel.new()
+				label.bbcode_enabled = true
+				label.fit_content = true
+				label.scroll_active = false
+				label.mouse_filter = Control.MOUSE_FILTER_IGNORE
+				label.add_theme_font_size_override("normal_font_size", 15)
+				label.add_theme_color_override("default_color", Color("dce5f4"))
 				label.text = _text("BATTLE_UI_CELL_MOVABLE") if is_move_cell else _text("BATTLE_UI_CELL_DEPLOYABLE") if is_deploy_cell else _text("BATTLE_UI_CELL_EMPTY")
+				cell.add_child(label)
 			elif str(unit.get("role", "")) == "summon_marker":
+				var label := RichTextLabel.new()
+				label.bbcode_enabled = true
+				label.fit_content = true
+				label.scroll_active = false
+				label.mouse_filter = Control.MOUSE_FILTER_IGNORE
+				label.add_theme_font_size_override("normal_font_size", 15)
+				label.add_theme_color_override("default_color", Color("dce5f4"))
 				label.text = _format_text("BATTLE_UI_SUMMON_MARKER_CELL", {
 					"pool": _text("BATTLE_UI_SUMMON_NORMAL_ENEMY") if str(unit.get("summon_pool", "normal")) == "normal" else _text("BATTLE_UI_SUMMON_ELITE_ENEMY")
 				})
+				cell.add_child(label)
 			else:
-				var status_text := _status_summary_text(unit)
-				label.text = _format_text("BATTLE_UI_UNIT_CELL", {
-					"name": unit["name"],
-					"hp": unit["hp"],
-					"max_hp": unit["max_hp"],
-					"shield": unit["shield"],
-					"speed": _effective_speed(unit),
-					"injury": _format_text("BATTLE_UI_UNIT_INJURY_LINE", {"marks": int(unit.get("injury_marks", 0))}) if is_ally and int(unit.get("injury_marks", 0)) > 0 else "",
-					"status": _format_text("BATTLE_UI_UNIT_STATUS_LINE", {"status": status_text}) if status_text != _text("BATTLE_UI_NONE") else ""
-				})
+				var unit_view := BATTLE_UNIT_VIEW_SCENE.instantiate()
+				unit_view.mouse_filter = Control.MOUSE_FILTER_IGNORE
+				cell.add_child(unit_view)
+				if unit_view.has_method("bind_unit"):
+					unit_view.bind_unit(unit, is_ally)
 				cell.mouse_entered.connect(_show_unit_info.bind(unit))
 				cell.mouse_exited.connect(_hide_info_popup)
-			cell.add_child(label)
 			grid.add_child(cell)
 	var bench := PackedStringArray()
 	for unit in units:

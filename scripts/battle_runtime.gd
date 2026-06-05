@@ -5,25 +5,7 @@ extends Node
 # 做成 Autoload 后，场景切换时当前构筑不会丢失。
 const DATA_PATH := "res://data/demo_data.json"
 const TEXT_DATABASE_SCRIPT := preload("res://scripts/database/text_database.gd")
-const RELICS := {
-	"empty_bag_battery": {
-		"name_key": "RELIC_EMPTY_BAG_BATTERY_NAME",
-		"desc_key": "RELIC_EMPTY_BAG_BATTERY_DESC"
-	},
-	"full_cell_battery": {
-		"name_key": "RELIC_FULL_CELL_BATTERY_NAME",
-		"desc_key": "RELIC_FULL_CELL_BATTERY_DESC"
-	},
-	"full_roster_banner": {
-		"name_key": "RELIC_FULL_ROSTER_BANNER_NAME",
-		"desc_key": "RELIC_FULL_ROSTER_BANNER_DESC"
-	},
-	"remnant_badge": {
-		"name_key": "RELIC_REMNANT_BADGE_NAME",
-		"desc_key": "RELIC_REMNANT_BADGE_DESC"
-	}
-}
-const RELIC_ORDER := ["empty_bag_battery", "full_cell_battery", "full_roster_banner", "remnant_badge"]
+const CHARACTER_DATABASE := preload("res://scripts/database/character_database.gd")
 
 # 从 JSON 读取的静态定义。
 var cards: Dictionary = {}
@@ -41,14 +23,7 @@ var character_states: Array = []
 var card_index_by_id: Dictionary = {}
 var character_index_by_id: Dictionary = {}
 var runtime_module_inventory: Dictionary = {}
-var exploration_state: Dictionary = {
-	"current_step": 0,
-	"current_node_type": "",
-	"completed_nodes": [],
-	"is_exploration_active": false,
-	"shop_open": false,
-	"boss_defeated": false
-}
+var exploration_state: Dictionary = {}
 var gold := 0
 var shop_offers: Array = []
 var shop_refresh_cost := 10
@@ -63,6 +38,10 @@ var fallback_text_database: Node
 # 构筑页进入战斗准备页后会置为 true。
 # 如果玩家返回构筑页，构筑页会用它恢复之前的编辑结果。
 var has_builder_snapshot := false
+
+
+func _init() -> void:
+	exploration_state = _default_exploration_state()
 
 
 func _ready() -> void:
@@ -137,6 +116,7 @@ func load_data() -> void:
 
 	for character_data in raw.get("characters", []):
 		var character: Dictionary = character_data.duplicate(true)
+		_apply_character_resource(character)
 		_resolve_text_fields(character, {
 			"name_key": "name",
 			"profession_name_key": "profession_name",
@@ -176,6 +156,8 @@ func import_builder_state(source_cards: Dictionary, source_modules: Dictionary, 
 	cards = source_cards.duplicate(true)
 	modules = source_modules.duplicate(true)
 	characters = source_characters.duplicate(true)
+	for character in characters:
+		_apply_character_resource(character)
 	card_order = source_card_order.duplicate(true)
 	module_order = source_module_order.duplicate(true)
 	card_states = source_card_states.duplicate(true)
@@ -187,6 +169,18 @@ func import_builder_state(source_cards: Dictionary, source_modules: Dictionary, 
 	for index in characters.size():
 		character_index_by_id[characters[index]["id"]] = index
 	has_builder_snapshot = true
+
+
+func _apply_character_resource(character: Dictionary) -> void:
+	var character_resource = CHARACTER_DATABASE.get_character(str(character.get("id", "")))
+	if character_resource == null:
+		return
+	if character_resource.has_method("apply_to_character_dict"):
+		character_resource.apply_to_character_dict(character)
+		return
+	var portrait = character_resource.get("portrait")
+	character["portrait"] = portrait
+	character["portrait_path"] = portrait.resource_path if portrait is Texture2D else ""
 
 
 func load_default_builds() -> void:
@@ -251,14 +245,8 @@ func get_module_total_count(module_id: String) -> int:
 
 
 func start_exploration() -> void:
-	exploration_state = {
-		"current_step": 0,
-		"current_node_type": "",
-		"completed_nodes": [],
-		"is_exploration_active": true,
-		"shop_open": false,
-		"boss_defeated": false
-	}
+	exploration_state = _default_exploration_state()
+	exploration_state["is_exploration_active"] = true
 	gold = 100
 	shop_offers.clear()
 	shop_refresh_cost = 10
@@ -381,7 +369,7 @@ func get_party_snapshot() -> Array:
 
 
 func get_relic(relic_id: String) -> Dictionary:
-	var relic: Dictionary = RELICS.get(relic_id, {}).duplicate(true)
+	var relic: Dictionary = _relic_definitions().get(relic_id, {}).duplicate(true)
 	if relic.has("name_key"):
 		relic["name"] = _text(str(relic["name_key"]))
 	if relic.has("desc_key"):
@@ -394,7 +382,7 @@ func has_relic(relic_id: String) -> bool:
 
 
 func add_relic(relic_id: String) -> bool:
-	if not RELICS.has(relic_id) or owned_relic_ids.has(relic_id):
+	if not _relic_definitions().has(relic_id) or owned_relic_ids.has(relic_id):
 		return false
 	owned_relic_ids.append(relic_id)
 	return true
@@ -402,10 +390,46 @@ func add_relic(relic_id: String) -> bool:
 
 func remaining_relic_ids() -> Array:
 	var result: Array = []
-	for relic_id in RELIC_ORDER:
+	for relic_id in _relic_order():
 		if not owned_relic_ids.has(relic_id):
 			result.append(relic_id)
 	return result
+
+
+func _relic_definitions() -> Dictionary:
+	var definitions: Dictionary = {}
+	definitions["empty_bag_battery"] = _relic_data("RELIC_EMPTY_BAG_BATTERY_NAME", "RELIC_EMPTY_BAG_BATTERY_DESC")
+	definitions["full_cell_battery"] = _relic_data("RELIC_FULL_CELL_BATTERY_NAME", "RELIC_FULL_CELL_BATTERY_DESC")
+	definitions["full_roster_banner"] = _relic_data("RELIC_FULL_ROSTER_BANNER_NAME", "RELIC_FULL_ROSTER_BANNER_DESC")
+	definitions["remnant_badge"] = _relic_data("RELIC_REMNANT_BADGE_NAME", "RELIC_REMNANT_BADGE_DESC")
+	return definitions
+
+
+func _relic_data(name_key: String, desc_key: String) -> Dictionary:
+	var relic: Dictionary = {}
+	relic["name_key"] = name_key
+	relic["desc_key"] = desc_key
+	return relic
+
+
+func _relic_order() -> Array:
+	var order: Array = []
+	order.append("empty_bag_battery")
+	order.append("full_cell_battery")
+	order.append("full_roster_banner")
+	order.append("remnant_badge")
+	return order
+
+
+func _default_exploration_state() -> Dictionary:
+	var state: Dictionary = {}
+	state["current_step"] = 0
+	state["current_node_type"] = ""
+	state["completed_nodes"] = []
+	state["is_exploration_active"] = false
+	state["shop_open"] = false
+	state["boss_defeated"] = false
+	return state
 
 
 func roll_relic_choices(count: int = 3) -> Array:
@@ -428,6 +452,7 @@ func build_character_runtime(character_index: int) -> Dictionary:
 	# 把角色静态数据转换成战斗用的运行时单位。
 	# battle_scene 会继续给它追加 row/col/field/dead 等战斗字段。
 	var character: Dictionary = characters[character_index]
+	_apply_character_resource(character)
 	var stats: Dictionary = character["stats"]
 	var equipped_skills := []
 	for card_id in character_states[character_index]["equipped_card_ids"]:
@@ -437,6 +462,8 @@ func build_character_runtime(character_index: int) -> Dictionary:
 		"name": character["name"],
 		"profession": character["profession"],
 		"profession_name": character["profession_name"],
+		"portrait": character.get("portrait", null),
+		"portrait_path": str(character.get("portrait_path", "")),
 		"strength": int(stats["strength"]),
 		"max_hp": int(stats["hp"]),
 		"hp": int(stats["hp"]),
